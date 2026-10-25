@@ -41,10 +41,10 @@ Then start a new conversation so the runtime loads the skill.
 
 ### Install manually
 
-Pick a directory from the table above and clone into it. For example, for Claude Code:
+Pick a directory from the table above and clone into it. For example, for the Agent Skills user directory:
 
 ```sh
-git clone https://github.com/RowanXB/academic-vocabulary-anki.git ~/.claude/skills/academic-vocabulary-anki
+git clone https://github.com/RowanXB/academic-vocabulary-anki.git ~/.agents/skills/academic-vocabulary-anki
 ```
 
 If the target already exists, inspect it manually and do not overwrite it.
