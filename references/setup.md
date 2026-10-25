@@ -156,3 +156,13 @@ data/pending.jsonl is created on the first collected word; data/history.jsonl re
 ## Tests
 
 Tests use temporary directories and a mock API by default; they run no HTTP server and never touch the real Anki. Real-world verification is done separately with valid study examples in the target deck; it never writes to other decks or resets reviews.
+
+For automated or unattended tests against a real Anki, install Anki's official PyPI package in a virtual environment and give it its own data directory, so the test never touches your normal Anki app or collection:
+
+```sh
+python3 -m venv <test-dir>/venv
+<test-dir>/venv/bin/python -m pip install "aqt[qt6]"
+<test-dir>/venv/bin/anki -b <test-dir>/anki-base
+```
+
+On Windows the executables are in `venv\Scripts\` instead of `venv/bin/`. Install AnkiConnect into `<test-dir>/anki-base/addons21/2055492159` as in step 3, and pass `--root <test-dir>/skill-data` to the scripts so the test queue, history and profile binding stay separate as well. The first launch of a new data directory shows a language dialog that needs one click. Use this only for testing; install Anki for daily use as in step 2.
