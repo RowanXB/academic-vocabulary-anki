@@ -2,9 +2,17 @@
 
 A local Agent Skill plus Python standard-library scripts. It works in local runtimes that support skills, such as Codex and Claude Code. The main entry point is `SKILL.md`.
 
-Installation, usage and troubleshooting notes are in [references/setup.md](references/setup.md).
+## Install
 
-Main files:
+Ask a local agent that can run shell commands, such as Claude Code or Codex:
+
+```text
+Install the agent skill from https://github.com/RowanXB/academic-vocabulary-anki on this Mac.
+```
+
+Agents and manual installers follow the same steps in [references/setup.md](references/setup.md#installation), which also covers daily use, maintenance and troubleshooting.
+
+## Files
 
 - `scripts/intake.py`: validates, persists and automatically attempts a sync.
 - `scripts/sync.py`: initializes, checks status and retries pending syncs.

@@ -1,81 +1,112 @@
-# Installation, usage and troubleshooting
+# Setup and operations
+
+This guide covers installation, daily use, maintenance and troubleshooting. Installation is a single procedure that you can run yourself or hand to a local agent.
 
 ## Requirements
 
-macOS, Python 3.9+, a local Anki installation and AnkiConnect. The scripts depend only on the Python standard library. macOS does not always ship with Python; check with `python3 --version`.
+- macOS
+- Python 3.9 or later (the scripts use only the standard library)
+- Anki with the AnkiConnect add-on
 
-## Choose where to install
+## Installation
 
-Install the skill by cloning the repository into the skills directory of the runtime you use. Common locations:
+### Install with an agent
+
+Open a local agent session that can run shell commands, such as Claude Code or Codex, and send:
+
+```text
+Install the agent skill from https://github.com/RowanXB/academic-vocabulary-anki on this Mac.
+```
+
+The agent follows the steps below. When an agent runs them, it must:
+
+- ask you which install directory to use instead of choosing one itself;
+- tell you what is missing and how it would install it, and wait for your confirmation before installing software or running `--init`;
+- stop and show you what is there if a target path already exists, never overwriting it;
+- finish by reporting the install path and the commands it ran.
+
+To install manually, run the same steps yourself.
+
+### Step 1: Check Python
+
+```sh
+python3 --version
+```
+
+macOS does not always ship with Python. If it is missing or older than 3.9, install Python 3 from https://www.python.org/downloads/ (or with Homebrew if you already use it).
+
+### Step 2: Install Anki
+
+Skip this step if `/Applications/Anki.app` exists.
+
+Download the macOS dmg for this Mac's chip from https://apps.ankiweb.net (`uname -m` prints `arm64` for Apple Silicon and `x86_64` for Intel), mount it, copy `Anki.app` to `/Applications`, then unmount it. If you already manage apps with Homebrew, `brew install --cask anki` works instead.
+
+### Step 3: Install AnkiConnect
+
+Skip this step if `~/Library/Application Support/Anki2/addons21/2055492159` exists.
+
+Quit Anki, download the official add-on from AnkiWeb and extract it into that folder, then start Anki again:
+
+```text
+https://ankiweb.net/shared/download/2055492159?v=2.1&p=<point>
+```
+
+`<point>` is the installed Anki version written as digits, for example `250705` for Anki 25.07.5. The link serves `AnkiConnect.ankiaddon`, which is a zip file. Alternatively, open the downloaded file with Anki, or enter code `2055492159` in Anki → Tools → Add-ons → Get Add-ons and restart Anki.
+
+Keep AnkiConnect's bind address `127.0.0.1` and port `8765`; no CORS wildcard and no relaxed security settings are needed. If the add-on has an API key enabled, pass it to the scripts through the `ANKICONNECT_API_KEY` environment variable; never put the key in notes, the skill or a chat.
+
+### Step 4: Clone the skill
+
+Clone the repository into a directory your runtime loads skills from. Common locations:
 
 | Runtime | Skill directory |
 |---|---|
 | Codex and other runtimes that read the Agent Skills user directory | `~/.agents/skills/academic-vocabulary-anki/` |
 | Claude Code | `~/.claude/skills/academic-vocabulary-anki/` |
 
-You decide the location; any directory your runtime loads skills from works. The scripts find their configuration and data from their own location, so `config.json` and `data/` live inside the directory you choose. Back up that whole directory when moving to another computer, especially pending, history and config.
-
-Each clone keeps its own configuration and vocabulary history. If you use several runtimes and want them to share one history, install once and make the other runtimes read that same directory yourself.
-
-The rest of this guide writes the chosen directory as `<skill-dir>`.
-
-New conversations load new skills; if the skill does not appear, restart that runtime or give it the path to SKILL.md explicitly. A local installation does not mean a cloud session has the skill or can reach this computer.
-
-## Install
-
-### Let your agent install it
-
-Open a local agent session that can run shell commands (for example Claude Code or Codex) and paste this request:
-
-```text
-Install the agent skill from https://github.com/RowanXB/academic-vocabulary-anki on this Mac:
-1. Check that python3 is version 3.9 or later, and that Anki (/Applications/Anki.app) and the AnkiConnect add-on (folder 2055492159 in Anki's addons21 directory) are installed. If anything is missing, tell me what and how you would install it, and install it yourself only after I confirm. For Anki, download the macOS dmg for this Mac's chip (Apple Silicon or Intel; check with `uname -m`) from https://apps.ankiweb.net, mount it, copy Anki.app to /Applications, then unmount it. If I already manage apps with Homebrew, `brew install --cask anki` is fine instead. For AnkiConnect, quit Anki, download the official add-on from https://ankiweb.net/shared/download/2055492159?v=2.1&p=<point> (p is the installed Anki version as digits, e.g. 25.07.5 → 250705; it serves AnkiConnect.ankiaddon, a zip file), extract it into ~/Library/Application Support/Anki2/addons21/2055492159, then start Anki again.
-2. Ask me which directory to install the skill in, and suggest this runtime's own skills directory as the default. Do not choose for me.
-3. Clone the repository into the directory I choose. If that path already exists, stop and show me what is there.
-4. Open Anki, then run scripts/sync.py --status from the clone and show me the result; "available" means AnkiConnect is responding.
-5. Only after I confirm the active Anki profile is the one I want, run scripts/sync.py --init.
-Report the install path and what you ran at the end.
-```
-
-Then start a new conversation so the runtime loads the skill.
-
-### Install manually
-
-Pick a directory from the table above and clone into it. For example, for the Agent Skills user directory:
-
 ```sh
 git clone https://github.com/RowanXB/academic-vocabulary-anki.git ~/.agents/skills/academic-vocabulary-anki
 ```
 
-If the target already exists, inspect it manually and do not overwrite it.
+The rest of this guide writes the chosen directory as `<skill-dir>`. The scripts locate their configuration and data from their own path, so `config.json` and `data/` live inside `<skill-dir>`. Each clone keeps its own configuration and vocabulary history; if you use several runtimes and want them to share one history, install once and make the other runtimes read that same directory yourself.
 
-## Set up AnkiConnect
+### Step 5: Check the connection
 
-If AnkiConnect is not installed, enter the official code `2055492159` in Anki → Tools → Add-ons → Get Add-ons, then restart Anki. Alternatively, download `AnkiConnect.ankiaddon` from `https://ankiweb.net/shared/download/2055492159?v=2.1&p=<point>` (for Anki 25.07.5, `p=250705`) and open it with Anki to install. Keep the bind address `127.0.0.1` and port `8765`; no CORS wildcard and no relaxed security settings are needed. If the add-on has an API key enabled, pass it to the scripts through the `ANKICONNECT_API_KEY` environment variable; never put the key in notes, the skill or a chat.
+Open Anki on the profile you want to use, then run:
 
-## First-time initialization
+```sh
+python3 <skill-dir>/scripts/sync.py --status
+```
 
-Run once, with Anki open on the profile you want to use:
+`"status": "available"` means AnkiConnect is responding. The output also shows the active profile and whether the target deck and note type already exist. This check is read-only.
+
+### Step 6: Initialize
+
+Confirm that the active profile shown in step 5 is the one you want, then run once:
 
 ```sh
 python3 <skill-dir>/scripts/sync.py --init
 ```
 
-Initialization binds the current Anki profile, creates the missing target deck and note type, and checks fields and templates. If an incompatible structure with the same name already exists, it stops and never overwrites it.
+Initialization binds that profile in `config.json`, creates the missing "Academic Vocabulary" deck and note type, and checks fields and templates. If an incompatible structure with the same name already exists, it stops and never overwrites it. Running it again is safe.
 
-## Start collecting
+### Step 7: Load the skill
+
+Start a new conversation so the runtime loads the skill. If it does not appear, restart the runtime or give it the path to `<skill-dir>/SKILL.md`. A local installation does not mean a cloud session has the skill or can reach this computer.
+
+Installation is complete; no further setup is needed.
+
+## Daily use
+
+### Start collecting
 
 In a chat dedicated to vocabulary, send this first: `Use academic-vocabulary-anki and treat this chat as a vocabulary collection chat. Save every word I send from now on to Anki automatically.` (In Codex you can write `$academic-vocabulary-anki`; in Claude Code you can use `/academic-vocabulary-anki`.) After that, just send words or screenshots.
 
 Automatic skill discovery is model behavior and cannot be guaranteed every time; enabling it explicitly once in a dedicated chat is the most reliable. The project has no resident background process, and opening Anki does not trigger a catch-up sync; pending records are retried on the next collected word or sync run.
 
-## Switching or clearing Anki profiles
+### Script commands
 
-Switching profiles requires the user to review and edit `expected_profile` in the project config deliberately; do not mix profiles in one queue.
-
-If you clear the current profile yourself: keep the local project first; after clearing, run `sync.py --init` to rebuild the target structure. History is not re-imported automatically; only pending records are processed on the next sync. When creating a profile with a different name, first confirm that the queued records belong to the new profile, then set `expected_profile` in config.json to that profile's exact name and initialize. Do not change the binding automatically just because the API reports a different profile. Clearing Anki and clearing the local vocabulary history are two separate operations.
-
-## Common commands
+The skill runs these for you; they are listed for checks and manual recovery.
 
 ```sh
 python3 <skill-dir>/scripts/sync.py --status
@@ -85,7 +116,19 @@ python3 <skill-dir>/scripts/intake.py records.json
 python3 -m unittest discover -s <skill-dir>/tests -v
 ```
 
-The model generates the structured data; the scripts contain no AI API and do not accept a bare word to generate definitions themselves. The skill handles that layer in everyday use. The default data directory is derived from the scripts' actual location. `--root PATH` isolates test data or points to another data directory explicitly; it does not change the Anki target names or the localhost address.
+The model generates the structured data; the scripts contain no AI API and do not accept a bare word to generate definitions themselves. `--root PATH` isolates test data or points to another data directory explicitly; it does not change the Anki target names or the localhost address.
+
+## Maintenance
+
+### Back up or move to another computer
+
+Back up the whole `<skill-dir>`, especially `config.json`, `data/pending.jsonl` and `data/history.jsonl`. These files are ignored by Git, so a fresh clone does not contain them.
+
+### Switch or clear Anki profiles
+
+Switching profiles requires you to review and edit `expected_profile` in `config.json` deliberately; do not mix profiles in one queue.
+
+If you clear the current profile yourself: keep the local project first; after clearing, run `sync.py --init` to rebuild the target structure. History is not re-imported automatically; only pending records are processed on the next sync. When creating a profile with a different name, first confirm that the queued records belong to the new profile, then set `expected_profile` in config.json to that profile's exact name and initialize. Do not change the binding automatically just because the API reports a different profile. Clearing Anki and clearing the local vocabulary history are two separate operations.
 
 ## Troubleshooting
 
@@ -100,7 +143,7 @@ The model generates the structured data; the scripts contain no AI API and do no
 - An empty IPA is a deliberate "not verified" state. TTS uses the device's built-in en_US voice: on desktop, install an American voice in the system speech settings and restart Anki. The templates do not pin a specific Apple voice, so they also work on mobile.
 - iOS/Android: sync the deck through your existing AnkiWeb sync and configure an en_US TTS engine or voice on the device. The scripts import into the local collection only and never run a full AnkiWeb sync. Actual mobile display and playback still need to be checked on each device.
 
-## Data and durability
+## How data is stored
 
 data/pending.jsonl is created on the first collected word; data/history.jsonl records the receipt and full vocabulary data only after a successful read-back confirmation. Writes use a temporary file in the same directory, fsync, macOS F_FULLFSYNC, atomic replacement and a process lock. If the process stops after a successful write to Anki, the next run finds the original note by Key instead of creating it again. A pending entry is removed only after the history record has been written. The directory is private and data files have 0600 permissions; there are no per-day files, no database, and Anki's internal database is never read.
 
