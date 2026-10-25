@@ -13,5 +13,15 @@
     "id": 3,
     "prompt": "anterograde amnesia\naffect",
     "expected": "专业术语优先 Receptive；affect 缺少语境有实质歧义时简短澄清；不编造定义、IPA 或导入状态。"
+  },
+  {
+    "id": 4,
+    "prompt": "attenuate — The intervention may attenuate the response, as it attenuated earlier responses.",
+    "expected": "用 answer_spans 选中两个不同词形，生成按语序编号的两个空和对应答案；原句不改写。"
+  },
+  {
+    "id": 5,
+    "prompt": "（已有 attenuate 的产出卡，提示为空）attenuate — The effect was attenuated after controlling for age. 这次做识别卡，提示写上过去分词形式。",
+    "expected": "复用已有词义 Key；不改已有卡型、不新增识别卡并如实说明；含答案的提示不会补进已有产出卡；不夸大同步结果。"
   }
 ]
