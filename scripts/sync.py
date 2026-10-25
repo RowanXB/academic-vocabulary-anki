@@ -56,7 +56,7 @@ def sync_note(api, record):
         if updates:
             fresh = api.call("notesInfo", notes=[note["noteId"]])
             if len(fresh) != 1 or not fresh[0] or note_fields(fresh[0]) != current:
-                raise Error("Note changed during sync; keep pending and retry when editing is finished")
+                raise Unavailable("Note changed during sync; keep pending and retry when editing is finished")
             api.call("updateNoteFields", note={"id": note["noteId"], "fields": updates})
             disposition = "supplemented"
         domain_tags = [t for t in record["tags"] if not t.startswith("context_")]
@@ -123,8 +123,10 @@ def synchronize(root, api=None):
                 queue.pop(0)
                 results.append({"key": record["fields"]["Key"], **result})
         except (Error, OSError, ValueError, KeyError, TypeError) as exc:
+            # Unavailable clears on its own; anything else blocks the queue until someone fixes it.
+            retry = "automatic" if isinstance(exc, Unavailable) else "after_fix"
             return {"status": "pending", "confirmed": len(results), "pending": len(queue),
-                    "reason": str(exc), "results": results}
+                    "retry": retry, "reason": str(exc), "results": results}
         return {"status": "synced", "confirmed": len(results), "pending": 0, "results": results}
 
 

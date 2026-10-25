@@ -40,6 +40,7 @@ If you clear the current profile yourself: keep the local project first; after c
 
 ## Troubleshooting
 
+- `pending` with `"retry": "after_fix"`: the queue is blocked at the first failing record, and later records wait behind it. Fix the cause named in `reason` (see the entries below), then run `sync.py` again.
 - `pending`: the content is still in data/pending.jsonl. Open or wake Anki, finish any open dialog, then sync again. macOS can also put background apps to sleep and cause a temporary timeout; wake Anki and retry, without changing system settings automatically.
 - Windows: IPA or other non-ASCII text arrives replaced or approximated (for example `ə` → `?`, `ˈ` → `'`): Windows PowerShell 5.1 encodes text piped into another program as ASCII, and `Set-Content` without `-Encoding UTF8` writes the system code page. Pass records to `intake.py` as a file written in UTF-8 (with or without a BOM) or UTF-16 with a BOM, such as `Out-File`'s default; other encodings fail without saving anything. Intake also rejects the whole batch when an IPA contains `?`, since IPA never uses it; other fields can legitimately contain `?` and are not checked.
 - Script output shows `\u0259` instead of `ə`: this is intended. The scripts print ASCII-only JSON so that no console code page can corrupt it; any JSON parser restores the original characters.

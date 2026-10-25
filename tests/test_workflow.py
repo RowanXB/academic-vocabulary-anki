@@ -278,7 +278,8 @@ class WorkflowTests(unittest.TestCase):
         enqueue(self.root, [self.raw])
         before = (self.root / "data/pending.jsonl").read_bytes()
         self.api.offline = True
-        self.assertEqual(self.run_sync()["status"], "pending")
+        result = self.run_sync()
+        self.assertEqual((result["status"], result["retry"]), ("pending", "automatic"))
         self.assertEqual((self.root / "data/pending.jsonl").read_bytes(), before)
         self.api.offline = False
         self.assertEqual(self.run_sync()["confirmed"], 1)
@@ -399,7 +400,8 @@ class WorkflowTests(unittest.TestCase):
         self.add()
         self.api.card_templates["Productive"]["Front"] = "Custom template"
         enqueue(self.root, [self.raw])
-        self.assertEqual(self.run_sync()["status"], "pending")
+        result = self.run_sync()
+        self.assertEqual((result["status"], result["retry"]), ("pending", "after_fix"))
         self.assertEqual(self.api.card_templates["Productive"]["Front"], "Custom template")
 
     def previous_release_templates(self, version=1):
@@ -453,8 +455,27 @@ class WorkflowTests(unittest.TestCase):
         self.api.foreign_deck = True
         previous = copy.deepcopy(self.api.notes)
         enqueue(self.root, [self.raw])
-        self.assertEqual(self.run_sync()["status"], "pending")
+        result = self.run_sync()
+        self.assertEqual((result["status"], result["retry"]), ("pending", "after_fix"))
         self.assertEqual(self.api.notes, previous)
+
+    def test_note_edited_during_sync_is_retried_automatically(self):
+        self.add()
+        self.api.notes[1]["fields"]["IPA"]["value"] = ""
+        enqueue(self.root, [self.raw])
+        real_call, reads = self.api.call, []
+
+        def call(action, **params):
+            if action == "notesInfo" and params["notes"] == [1]:
+                reads.append(1)
+                if len(reads) == 2:  # the user edits the note between the two reads
+                    self.api.notes[1]["fields"]["Definition"]["value"] = "Edited meanwhile"
+            return real_call(action, **params)
+
+        with patch.object(self.api, "call", call):
+            result = self.run_sync()
+        self.assertEqual((result["status"], result["retry"]), ("pending", "automatic"))
+        self.assertEqual(self.api.notes[1]["fields"]["IPA"]["value"], "")
 
     def test_whole_batch_validation_is_atomic(self):
         bad = copy.deepcopy(self.raw)
