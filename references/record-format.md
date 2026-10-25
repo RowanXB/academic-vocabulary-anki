@@ -26,7 +26,7 @@ Input is a JSON object, array of objects, or JSONL. All text is plain text: HTML
 }
 ```
 
-For generated contexts, use `context_origin: "generated"` and omit `original_context` (or use an empty string). Sources and IPA-source URLs are local metadata, not Anki fields. A nonempty IPA requires an HTTPS source; this structural check does not prove the source supports the IPA. The generating agent must actually verify it. Use `sources: []` when no source was consulted. `target_forms` must include relevant inflections/derivations to catch leaks; the script always adds Term and Answer.
+For generated contexts, use `context_origin: "generated"` and omit `original_context` (or use an empty string). Sources and IPA-source URLs are local metadata, not Anki fields. A nonempty IPA requires an HTTPS source; this structural check does not prove the source supports the IPA. The generating agent must actually verify it, following the source order in SKILL.md step 6; an IPA containing `?` is rejected as corrupted input. Use `sources: []` when no source was consulted. `target_forms` must include relevant inflections/derivations to catch leaks; the script always adds Term and Answer.
 
 Required fields: Term, Definition, Context, plus at least one card flag set to the string `"1"`. Supply Answer or the model-selected `answer_spans` described below. Other fields default to `""`. Supply a domain tag such as academic, neuroscience, psychology or statistics. The matching context_user/context_generated tag is added automatically. Context must be a full example, normally one sentence. The script checks a basic minimum length, not grammatical or scientific correctness.
 
