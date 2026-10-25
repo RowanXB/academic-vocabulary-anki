@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Validate JSON/JSONL vocabulary records, durably enqueue, then optionally sync."""
 import argparse
+import codecs
 import json
 from pathlib import Path
 import sys
-from common import Error, ROOT, check_record, locked, read_jsonl, use_utf8_stdio, validate, write_jsonl
+from common import Error, ROOT, check_record, locked, read_jsonl, validate, write_jsonl
 
 
 def enqueue(root, raw_records):
@@ -28,32 +29,36 @@ def enqueue(root, raw_records):
             "pending": len(queue), "keys": [r["fields"]["Key"] for r in records]}
 
 
+def decode_input(data):
+    """Decode UTF-8 (with or without BOM) or UTF-16 with BOM, as Windows tools may write it."""
+    if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+        return data.decode("utf-16")
+    return data.decode("utf-8-sig")
+
+
 def main():
-    use_utf8_stdio()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", nargs="?", default="-", help="JSON object/array or JSONL; '-' reads stdin")
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--no-sync", action="store_true")
     args = parser.parse_args()
     try:
-        source = sys.stdin.read() if args.input == "-" else Path(args.input).read_text(encoding="utf-8")
-        # Windows PowerShell 5.1 writes a UTF-8 BOM by default.
-        source = source[1:] if source.startswith("\ufeff") else source
+        source = decode_input(sys.stdin.buffer.read() if args.input == "-" else Path(args.input).read_bytes())
         try:
             raw = json.loads(source)
             records = raw if isinstance(raw, list) else [raw]
         except json.JSONDecodeError:
             records = [json.loads(line) for line in source.splitlines() if line.strip()]
         result = enqueue(args.root, records)
-        print(json.dumps(result, ensure_ascii=False), flush=True)
+        print(json.dumps(result), flush=True)
         if not args.no_sync:
             from sync import synchronize
             synced = synchronize(args.root)
-            print(json.dumps(synced, ensure_ascii=False))
+            print(json.dumps(synced))
             return 0 if synced["status"] == "synced" else 2
         return 0
     except (Error, OSError, ValueError, KeyError, TypeError) as exc:
-        print(json.dumps({"status": "failed", "error": str(exc)}, ensure_ascii=False))
+        print(json.dumps({"status": "failed", "error": str(exc)}))
         return 1
 
 

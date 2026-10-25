@@ -522,20 +522,38 @@ class WorkflowTests(unittest.TestCase):
                 write_jsonl(path, [{"n": 2}])
         self.assertEqual(read_jsonl(path), [{"n": 2}])
 
-    def test_cli_output_is_utf8_under_legacy_console_encoding(self):
+    def test_cli_output_is_ascii_json_under_legacy_console_encoding(self):
         self.add()
         env = dict(os.environ, PYTHONIOENCODING="cp1252")
         result = subprocess.run([sys.executable, str(SKILL / "scripts/lookup.py"), "attenuate", "--root", str(self.root), "--offline"], capture_output=True, env=env)
-        self.assertEqual(result.returncode, 0, result.stderr.decode("utf-8", "replace"))
-        output = json.loads(result.stdout.decode("utf-8"))
+        self.assertEqual(result.returncode, 0, result.stderr.decode("ascii", "replace"))
+        self.assertTrue(result.stdout.isascii())
+        output = json.loads(result.stdout.decode("ascii"))
         self.assertIn("ə", output["local_records"][0]["fields"]["IPA"])
 
-    def test_intake_accepts_utf8_bom_from_windows_editors(self):
+    def test_intake_accepts_bom_files_from_windows_tools(self):
+        text = json.dumps(self.raw, ensure_ascii=False)
+        encodings = {"utf8-bom": b"\xef\xbb\xbf" + text.encode("utf-8"),
+                     "utf16-le": text.encode("utf-16"),  # Python writes a BOM in native order
+                     "utf16-be": b"\xfe\xff" + text.encode("utf-16-be")}
+        for name, data in encodings.items():
+            with self.subTest(name):
+                root = self.root / name
+                root.mkdir()
+                (root / "config.json").write_text(json.dumps({"expected_profile": "Test"}))
+                source = root / "input.json"
+                source.write_bytes(data)
+                result = subprocess.run([sys.executable, str(SKILL / "scripts/intake.py"), str(source), "--root", str(root), "--no-sync"], capture_output=True)
+                self.assertEqual(result.returncode, 0, result.stdout.decode("ascii", "replace"))
+                self.assertEqual(read_jsonl(root / "data/pending.jsonl")[0]["fields"]["IPA"], self.raw["fields"]["IPA"])
+
+    def test_intake_rejects_undecodable_input_without_saving(self):
         source = self.root / "input.json"
-        source.write_bytes(b"\xef\xbb\xbf" + json.dumps(self.raw, ensure_ascii=False).encode("utf-8"))
+        source.write_bytes(json.dumps(self.raw, ensure_ascii=False).encode("cp1252", "replace").replace(b"?", b"\xe9"))
         result = subprocess.run([sys.executable, str(SKILL / "scripts/intake.py"), str(source), "--root", str(self.root), "--no-sync"], capture_output=True)
-        self.assertEqual(result.returncode, 0, result.stdout.decode("utf-8", "replace"))
-        self.assertEqual(self.pending()[0]["fields"]["IPA"], self.raw["fields"]["IPA"])
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(json.loads(result.stdout.decode("ascii"))["status"], "failed")
+        self.assertEqual(self.pending(), [])
 
     def test_lookup_offline_retains_sense_and_context(self):
         self.add()

@@ -4,8 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
-from common import (Anki, Error, NAME, ROOT, check_profile, config, locked, normalized, plain, read_jsonl,
-                    use_utf8_stdio)
+from common import Anki, Error, NAME, ROOT, check_profile, config, locked, normalized, plain, read_jsonl
 
 
 def lookup(root, term, offline=False):
@@ -33,17 +32,16 @@ def lookup(root, term, offline=False):
 
 
 def main():
-    use_utf8_stdio()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("term")
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--offline", action="store_true")
     args = parser.parse_args()
     try:
-        print(json.dumps(lookup(args.root, args.term, args.offline), ensure_ascii=False))
+        print(json.dumps(lookup(args.root, args.term, args.offline)))
         return 0
     except (Error, OSError, ValueError, KeyError, TypeError) as exc:
-        print(json.dumps({"status": "failed", "error": str(exc)}, ensure_ascii=False))
+        print(json.dumps({"status": "failed", "error": str(exc)}))
         return 1
 
 

@@ -6,7 +6,6 @@ import json
 import os
 from pathlib import Path
 import re
-import sys
 import tempfile
 import unicodedata
 import urllib.error
@@ -273,13 +272,6 @@ def locked(root):
             yield data
         finally:
             unlock_file(stream.fileno())
-
-
-def use_utf8_stdio():
-    """Keep JSON input and output in UTF-8 even under a legacy Windows code page."""
-    for stream in (sys.stdin, sys.stdout, sys.stderr):
-        if hasattr(stream, "reconfigure"):
-            stream.reconfigure(encoding="utf-8")
 
 
 def config(root):
