@@ -162,6 +162,9 @@ def validate(raw):
         raise Error("Sources must be URL strings")
     if fields["IPA"] and not re.match(r"https://[^\s]+$", ipa_source):
         raise Error("Nonempty IPA requires a verified American IPA source URL")
+    # IPA never uses "?"; it appears when a non-UTF-8 write replaced the symbols.
+    if "?" in fields["IPA"]:
+        raise Error("IPA contains '?', which suggests the input was not written as UTF-8; resend it as a UTF-8 file")
     if any(not re.fullmatch(r"https://[^\s]+", x) for x in sources):
         raise Error("sources must contain HTTPS URLs")
     tags = raw.get("tags", [])

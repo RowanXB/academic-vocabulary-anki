@@ -433,6 +433,15 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(Error):
             validate(self.raw)
 
+    def test_ipa_with_question_mark_rejects_whole_batch(self):
+        # Seen on Windows PowerShell 5.1: Set-Content and pipes turn ə into ? silently.
+        corrupted = copy.deepcopy(EXAMPLES[1])
+        corrupted["fields"]["IPA"] = "/?'ten.ju.e?t/"
+        corrupted["ipa_source"] = "https://example.org/ipa"
+        with self.assertRaisesRegex(Error, "IPA contains"):
+            enqueue(self.root, [self.raw, corrupted])
+        self.assertFalse((self.root / "data/pending.jsonl").exists())
+
     def test_html_escaped_without_changing_cached_context(self):
         self.raw["fields"]["Context"] = "The effect was attenuated when p < 0.05 & n > 20."
         self.raw["original_context"] = self.raw["fields"]["Context"]
