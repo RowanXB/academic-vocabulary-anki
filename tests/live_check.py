@@ -16,7 +16,7 @@ def run(root):
     cfg = config(root)
     api = Anki(cfg)
     ready = initialize(root)
-    examples = json.loads((SKILL / "evals/live-examples.json").read_text())
+    examples = json.loads((SKILL / "evals/live-examples.json").read_text(encoding="utf-8"))
     enqueue(root, examples)
     first = synchronize(root)
     assert first["status"] == "synced", first

@@ -17,7 +17,7 @@ from intake import enqueue
 from lookup import lookup
 from sync import synchronize
 
-EXAMPLES = json.loads((SKILL / "evals/live-examples.json").read_text())
+EXAMPLES = json.loads((SKILL / "evals/live-examples.json").read_text(encoding="utf-8"))
 
 
 class FakeAnki:
@@ -117,7 +117,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(result["status"], "synced", result)
 
     def test_single_word_generated_fixture(self):
-        raw = json.loads((SKILL / "evals/single-word.json").read_text())
+        raw = json.loads((SKILL / "evals/single-word.json").read_text(encoding="utf-8"))
         result = validate(raw)
         self.assertEqual(result["fields"]["Prompt"], "Additional statistical controls may _____ the observed association.")
         self.assertEqual(result["fields"]["Productive"], "1")
@@ -308,7 +308,7 @@ class WorkflowTests(unittest.TestCase):
     def test_same_sense_new_context_preserves_valid_content(self):
         self.add()
         first = copy.deepcopy(self.api.notes)
-        newer = json.loads((SKILL / "evals/single-word.json").read_text())
+        newer = json.loads((SKILL / "evals/single-word.json").read_text(encoding="utf-8"))
         enqueue(self.root, [newer])
         result = self.run_sync()
         self.assertTrue(result["results"][0]["preserved_existing_context"])
@@ -338,7 +338,7 @@ class WorkflowTests(unittest.TestCase):
     def test_context_fields_not_mixed(self):
         self.add()
         self.api.notes[1]["fields"]["Hint"]["value"] = ""
-        newer = json.loads((SKILL / "evals/single-word.json").read_text())
+        newer = json.loads((SKILL / "evals/single-word.json").read_text(encoding="utf-8"))
         enqueue(self.root, [newer])
         self.assertEqual(self.run_sync()["status"], "synced")
         self.assertEqual(self.api.notes[1]["fields"]["Hint"]["value"], "")
@@ -516,7 +516,7 @@ class WorkflowTests(unittest.TestCase):
 
         path = self.root / "data/pending.jsonl"
         with patch.object(common.os, "open", no_directory_open):
-            with self.assertRaises(PermissionError):
+            with patch.object(common, "WINDOWS", False), self.assertRaises(PermissionError):
                 write_jsonl(path, [{"n": 1}])
             with patch.object(common, "WINDOWS", True):
                 write_jsonl(path, [{"n": 2}])
@@ -529,6 +529,13 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr.decode("utf-8", "replace"))
         output = json.loads(result.stdout.decode("utf-8"))
         self.assertIn("ə", output["local_records"][0]["fields"]["IPA"])
+
+    def test_intake_accepts_utf8_bom_from_windows_editors(self):
+        source = self.root / "input.json"
+        source.write_bytes(b"\xef\xbb\xbf" + json.dumps(self.raw, ensure_ascii=False).encode("utf-8"))
+        result = subprocess.run([sys.executable, str(SKILL / "scripts/intake.py"), str(source), "--root", str(self.root), "--no-sync"], capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stdout.decode("utf-8", "replace"))
+        self.assertEqual(self.pending()[0]["fields"]["IPA"], self.raw["fields"]["IPA"])
 
     def test_lookup_offline_retains_sense_and_context(self):
         self.add()

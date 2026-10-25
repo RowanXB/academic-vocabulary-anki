@@ -37,6 +37,8 @@ def main():
     args = parser.parse_args()
     try:
         source = sys.stdin.read() if args.input == "-" else Path(args.input).read_text(encoding="utf-8")
+        # Windows PowerShell 5.1 writes a UTF-8 BOM by default.
+        source = source[1:] if source.startswith("\ufeff") else source
         try:
             raw = json.loads(source)
             records = raw if isinstance(raw, list) else [raw]

@@ -136,6 +136,7 @@ If you clear the current profile yourself: keep the local project first; after c
 ## Troubleshooting
 
 - `pending`: the content is still in data/pending.jsonl. Open or wake Anki, finish any open dialog, then sync again. macOS can also put background apps to sleep and cause a temporary timeout; wake Anki and retry, without changing system settings automatically.
+- Windows: IPA or other non-ASCII text arrives as `?`: Windows PowerShell 5.1 encodes text piped into another program as ASCII. Pass records to `intake.py` as a UTF-8 file instead of piping them; a UTF-8 BOM in the file is accepted.
 - Windows "file in use" or permission errors while saving: another program, such as antivirus or an editor, has a file in `data/` open. Close it and retry; records already saved stay pending until the next sync.
 - `failed`: read the JSON error. If `saved_pending` was printed earlier, the cache is still saved; otherwise do not assume anything was saved. A corrupted JSONL file stops processing and the original file is kept; bad lines are never dropped automatically.
 - Duplicate sense: run lookup first and reuse the sense. The scripts only guarantee idempotency for a stable Key; comparing meanings is the AI's job. Renaming a sense must not be used to bypass deduplication.
