@@ -341,6 +341,26 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(self.run_sync()["status"], "synced")
         self.assertEqual(self.api.notes[1]["fields"]["Hint"]["value"], "")
 
+    def test_receptive_supplement_cannot_leak_into_existing_productive_card(self):
+        self.add()
+        self.api.notes[1]["fields"]["Hint"]["value"] = ""
+        self.raw["fields"].update(Receptive="1", Productive="", Hint="past participle: attenuated")
+        enqueue(self.root, [self.raw])
+        self.assertEqual(self.run_sync()["status"], "synced")
+        self.assertEqual(self.api.notes[1]["fields"]["Productive"]["value"], "1")
+        self.assertEqual(self.api.notes[1]["fields"]["Hint"]["value"], "")
+
+    def test_context_provenance_restored_after_lost_update_response(self):
+        self.add()
+        self.api.notes[1]["fields"]["Context"]["value"] = ""
+        self.api.notes[1]["tags"] = [t for t in self.api.notes[1]["tags"] if not t.startswith("context_")]
+        self.api.lose_update_response = True
+        enqueue(self.root, [self.raw])
+        self.assertEqual(self.run_sync()["status"], "pending")
+        self.assertEqual(self.run_sync()["status"], "synced")
+        self.assertEqual(self.api.notes[1]["fields"]["Context"]["value"], self.raw["fields"]["Context"])
+        self.assertIn("context_user", self.api.notes[1]["tags"])
+
     def test_new_sense_new_key(self):
         other = copy.deepcopy(self.raw)
         other["sense"] = "make-long-and-thin"

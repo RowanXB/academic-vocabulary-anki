@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import sys
 from common import (Anki, Error, Unavailable, ROOT, NAME, FIELDS, check_profile, check_record,
-                    config, durable_replace, encode_fields, ensure_model, find_key, locked,
+                    config, contains, durable_replace, encode_fields, ensure_model, find_key, locked,
                     normalized, note_fields, plain, read_jsonl, write_jsonl)
 
 
@@ -28,6 +28,7 @@ def sync_note(api, record):
         if not note or note["noteId"] != nid or note_fields(note) != incoming:
             raise Unavailable("Created note could not be verified; keep pending")
         disposition = "created"
+        wanted_tags = record["tags"]
     else:
         current = note_fields(note)
         if normalized(plain(current["Term"])) != normalized(record["fields"]["Term"]):
@@ -39,11 +40,17 @@ def sync_note(api, record):
         # into a manually edited sentence, or an unrelated hint into an old cue.
         coupled = ("Context", "Prompt", "Answer", "Hint")
         context_compatible = all(not current[k].strip() or current[k] == incoming[k] for k in coupled)
+        # Flags are never supplemented, so the existing Productive flag decides whether
+        # a blank would be shown on the recall side. A leaking blank is not compatible.
+        leaking = set()
+        if current["Productive"]:
+            leaking = {k for k in ("Definition", "Prompt", "Hint") if current[k] == ""
+                       and any(contains(record["fields"][k], form) for form in record["target_forms"])}
         candidates = ["Definition", "Collocation", "Contrast", "IPA"]
-        if context_compatible:
+        if context_compatible and "Prompt" not in leaking:
             candidates += list(coupled)
         for field in candidates:
-            if current[field] == "" and incoming[field]:
+            if field not in leaking and current[field] == "" and incoming[field]:
                 updates[field] = incoming[field]
         # Empty flags can be deliberate user choices. Do not re-enable cards.
         if updates:
@@ -54,8 +61,11 @@ def sync_note(api, record):
             disposition = "supplemented"
         domain_tags = [t for t in record["tags"] if not t.startswith("context_")]
         # Context provenance describes the actual saved Context, not every later encounter.
-        if current["Context"] == "" and "Context" in updates and not any(t.casefold().startswith("context_") for t in note["tags"]):
+        # Checking the saved value also covers a retry after a lost update response.
+        saved_context = updates.get("Context", current["Context"])
+        if saved_context == incoming["Context"] and not any(t.casefold().startswith("context_") for t in note["tags"]):
             domain_tags.append("context_" + record["context_origin"])
+        wanted_tags = domain_tags
         missing = sorted(t for t in set(domain_tags) if t.casefold() not in {x.casefold() for x in note["tags"]})
         if missing:
             api.call("addTags", notes=[note["noteId"]], tags=" ".join(missing))
@@ -76,7 +86,6 @@ def sync_note(api, record):
     if (len(cards) != len(verified["cards"]) or any(c.get("deckName") != NAME for c in cards)
             or not enabled.issubset({c.get("ord") for c in cards})):
         raise Error("Generated card types or target deck could not be verified; keep pending")
-    wanted_tags = set(record["tags"]) if disposition == "created" else {t for t in record["tags"] if not t.startswith("context_")}
     if not {t.casefold() for t in wanted_tags}.issubset({t.casefold() for t in verified["tags"]}):
         raise Unavailable("Tag update could not be verified; keep pending")
     return {"note_id": verified["noteId"], "disposition": disposition,
