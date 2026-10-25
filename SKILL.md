@@ -32,7 +32,7 @@ Normal replies are short and in the user's language, e.g. “Imported 1 sense; c
 
 Never edit `pending.jsonl` manually or access Anki's internal database. Use the scripts for validation, escaping, locking, atomic writes, API calls and recovery. `history.jsonl` stores confirmed records and new encounters, including contexts preserved locally when an existing Anki context is retained. Consult it for stable senses; it is not an alternative scheduler. Do not purge it automatically.
 
-The active profile is pinned in `config.json`. Initial setup uses `sync.py --init`; check `sync.py --status` on connectivity issues. Use [the installation guide](README.md) if available, or [references/setup.md](references/setup.md) in a standalone package.
+The active profile is pinned in `config.json`. Initial setup uses `sync.py --init`; check `sync.py --status` on connectivity issues. Installation is in [references/setup.md](references/setup.md); daily use, maintenance and troubleshooting are in [references/operations.md](references/operations.md).
 
 Do not overwrite nonempty Anki fields, change existing card flags, reset scheduling, move cards or delete notes. Empty fields of an existing note are filled when compatible: Definition, Collocation, Contrast and IPA individually; Context/Prompt/Answer/Hint only as one unit whose nonempty values already match the new record. A blank that would expose a target form on an existing Productive card stays empty. Existing template/field mismatch stops sync instead of overwriting. Keep other decks untouched. Avoid running while the user is editing the same note or switching profiles: AnkiConnect has no compare-and-swap transaction across read and write. A detected change leaves the record pending.
 
