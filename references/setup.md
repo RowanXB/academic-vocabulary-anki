@@ -1,33 +1,34 @@
 # 安装、使用与故障排除
 
-要求：macOS、Python 3.9+、本地 Anki 和 AnkiConnect。运行脚本只依赖 Python 标准库。macOS 不一定预装 Python；本次机器已检测到 Python 3.13.7。
+要求：macOS、Python 3.9+、本地 Anki 和 AnkiConnect。运行脚本只依赖 Python 标准库。macOS 不一定预装 Python，可用 `python3 --version` 检查。
 
 仓库与 Skill 默认位置：`~/.agents/skills/academic-vocabulary-anki/`。`SKILL.md`、scripts、references 等直接位于仓库根目录，完整 Git 历史一并保留。`config.json` 和运行数据放在项目根目录；换电脑时同时备份整个项目目录，尤其是 pending、history 和 config。
 
 各运行环境通过符号链接读取同一份仓库，避免维护两份代码：
 
-| 运行环境 | 读取位置 | 本机状态 |
+| 运行环境 | 读取位置 | 安装方式 |
 |---|---|---|
 | 遵循 Agent Skills 标准目录的运行环境 | `~/.agents/skills/academic-vocabulary-anki/` | 仓库本身 |
-| Claude Code | `~/.claude/skills/academic-vocabulary-anki/` | `~/.claude/skills` 整体链接到 `~/.agents/skills` |
-| Codex | `~/.codex/skills/academic-vocabulary-anki/` | 单独链接到仓库根目录 |
+| Claude Code | `~/.claude/skills/academic-vocabulary-anki/` | 链接到仓库根目录，或把 `~/.claude/skills` 整体链接到 `~/.agents/skills` |
+| Codex | `~/.codex/skills/academic-vocabulary-anki/` | 链接到仓库根目录 |
 
 新开对话加载新技能；如未出现，重启该运行环境，或显式提供 SKILL.md 路径。本地安装不等于云端会话已安装或可以访问本机。
 
-在另一台 Mac 上，将文件包解压后放到同样的仓库目录，再只为实际使用的运行环境安装链接（如目标已存在，先人工检查，不覆盖）：
+先把仓库克隆到默认位置，再只为实际使用的运行环境安装链接（如目标已存在，先人工检查，不覆盖）：
 
 ```sh
+git clone https://github.com/RowanXB/academic-vocabulary-anki.git ~/.agents/skills/academic-vocabulary-anki
 mkdir -p ~/.codex/skills
 ln -s ~/.agents/skills/academic-vocabulary-anki ~/.codex/skills/academic-vocabulary-anki
 mkdir -p ~/.claude/skills
 ln -s ~/.agents/skills/academic-vocabulary-anki ~/.claude/skills/academic-vocabulary-anki
 ```
 
-若 `~/.claude/skills` 已经是指向 `~/.agents/skills` 的链接（如本机），跳过最后两行，否则 `ln -s` 会在仓库内部再建一个自指链接。
+若 `~/.claude/skills` 已经是指向 `~/.agents/skills` 的链接，跳过最后两行，否则 `ln -s` 会在仓库内部再建一个自指链接。
 
 首次在词汇专用对话发送：`使用 academic-vocabulary-anki，把这个对话作为词汇收集对话。之后我发来的词汇请自动保存到 Anki。`（Codex 可写 `$academic-vocabulary-anki`，Claude Code 可用 `/academic-vocabulary-anki`。） 之后发送词或截图即可。自动发现是模型行为，无法保证每次都触发；显式启用一次并使用专门对话最稳妥。本项目没有后台常驻程序，打开 Anki 本身不会触发补同步；下次收词或执行同步时会重试。
 
-首次初始化（已在本机完成时不必重跑）：
+首次初始化（只需运行一次）：
 
 ```sh
 python3 ~/.agents/skills/academic-vocabulary-anki/scripts/sync.py --init
@@ -49,7 +50,7 @@ python3 -m unittest discover -s ~/.agents/skills/academic-vocabulary-anki/tests 
 
 模型生成结构化数据；脚本不包含 AI API，也不接受裸词并自行生成定义。日常由 Skill 完成这一层。默认数据目录从脚本实际位置推导，不再依赖 Documents 路径。`--root PATH` 用于隔离测试数据或显式指定其他数据目录，不更改 Anki 目标名称或 localhost 地址。
 
-若 AnkiConnect 未安装，在 Anki → Tools → Add-ons → Get Add-ons 输入官方编号 `2055492159`，重启 Anki。本次已存在该插件，未重装。保持绑定地址 `127.0.0.1`、端口 `8765`；无需 CORS 通配符、无需关闭安全设置。若插件已启用 API key，使用环境变量 `ANKICONNECT_API_KEY` 传给脚本；不要把密钥写进笔记、Skill 或聊天。
+若 AnkiConnect 未安装，在 Anki → Tools → Add-ons → Get Add-ons 输入官方编号 `2055492159`，重启 Anki。保持绑定地址 `127.0.0.1`、端口 `8765`；无需 CORS 通配符、无需关闭安全设置。若插件已启用 API key，使用环境变量 `ANKICONNECT_API_KEY` 传给脚本；不要把密钥写进笔记、Skill 或聊天。
 
 排障：
 
