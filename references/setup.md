@@ -10,9 +10,8 @@ Install the skill by cloning the repository into the skills directory of the run
 
 | Runtime | Skill directory |
 |---|---|
-| Runtimes that follow the Agent Skills standard directory | `~/.agents/skills/academic-vocabulary-anki/` |
+| Codex and other runtimes that read the Agent Skills user directory | `~/.agents/skills/academic-vocabulary-anki/` |
 | Claude Code | `~/.claude/skills/academic-vocabulary-anki/` |
-| Codex | `~/.codex/skills/academic-vocabulary-anki/` |
 
 You decide the location; any directory your runtime loads skills from works. The scripts find their configuration and data from their own location, so `config.json` and `data/` live inside the directory you choose. Back up that whole directory when moving to another computer, especially pending, history and config.
 
