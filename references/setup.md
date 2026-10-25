@@ -31,31 +31,24 @@ To install manually, run the same steps yourself.
 
 ### Step 1: Check Python
 
-```sh
-python3 --version
-```
+Python 3.9 or later is required, and neither system always ships with it.
 
-On Windows, run `py -3 --version`.
-
-macOS and Windows do not always ship with Python. If it is missing or older than 3.9, install Python 3 from https://www.python.org/downloads/ (or with Homebrew on macOS if you already use it).
+- macOS: run `python3 --version`. If Python is missing or older than 3.9, install it from https://www.python.org/downloads/, or with `brew install python` if you already use Homebrew.
+- Windows: run `py -3 --version`. If Python is missing or older than 3.9, install it from https://www.python.org/downloads/.
 
 ### Step 2: Install Anki
 
-Skip this step if Anki is already installed (on macOS, `/Applications/Anki.app` exists).
-
-- macOS: download the dmg for this Mac's chip from https://apps.ankiweb.net (`uname -m` prints `arm64` for Apple Silicon and `x86_64` for Intel), mount it, copy `Anki.app` to `/Applications`, then unmount it. If you already manage apps with Homebrew, `brew install --cask anki` works instead.
-- Windows: download the Windows installer from https://apps.ankiweb.net and run it.
+- macOS: skip this step if `/Applications/Anki.app` exists. Otherwise download the dmg for this Mac's chip from https://apps.ankiweb.net (`uname -m` prints `arm64` for Apple Silicon and `x86_64` for Intel), mount it, copy `Anki.app` to `/Applications`, then unmount it. If you already manage apps with Homebrew, `brew install --cask anki` works instead.
+- Windows: skip this step if Anki is already installed. Otherwise download the Windows installer from https://apps.ankiweb.net and run it.
 
 ### Step 3: Install AnkiConnect
 
-Skip this step if the add-on folder already exists:
+AnkiConnect lives in Anki's add-on folder:
 
-| System | AnkiConnect folder |
-|---|---|
-| macOS | `~/Library/Application Support/Anki2/addons21/2055492159` |
-| Windows | `%APPDATA%\Anki2\addons21\2055492159` |
+- macOS: `~/Library/Application Support/Anki2/addons21/2055492159`
+- Windows: `%APPDATA%\Anki2\addons21\2055492159`
 
-Quit Anki, download the official add-on from AnkiWeb and extract it into that folder, then start Anki again:
+Skip this step if that folder exists. Otherwise quit Anki, download the official add-on from AnkiWeb and extract it into that folder, then start Anki again:
 
 ```text
 https://ankiweb.net/shared/download/2055492159?v=2.1&p=<point>
@@ -69,7 +62,7 @@ Keep AnkiConnect's bind address `127.0.0.1` and port `8765`; no CORS wildcard an
 
 Clone the repository into a directory your runtime loads skills from. Common locations:
 
-| Runtime | Skill directory (on Windows, `~` is `%USERPROFILE%`) |
+| Runtime | Skill directory |
 |---|---|
 | Codex and other runtimes that read the Agent Skills user directory | `~/.agents/skills/academic-vocabulary-anki/` |
 | Claude Code | `~/.claude/skills/academic-vocabulary-anki/` |
