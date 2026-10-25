@@ -44,11 +44,54 @@ def contains(text, word):
     return bool(re.search(r"(?<!\w)" + re.escape(word) + r"(?!\w)", text, re.I))
 
 
+def cloze_fields(context, answer, requested_spans):
+    """Resolve the model's exact-text selections without deciding vocabulary senses."""
+    def matches(text):
+        return list(re.finditer(r"(?<!\w)" + re.escape(text) + r"(?!\w)", context))
+
+    selected = []
+    if requested_spans is None:
+        if not answer.strip():
+            raise Error("Missing Answer or answer_spans")
+        selected = [(m.start(), m.end(), answer, i) for i, m in enumerate(matches(answer), 1)]
+        if not selected:
+            raise Error("Answer must occur with exact capitalization in Context")
+    else:
+        if not isinstance(requested_spans, list) or not requested_spans:
+            raise Error("answer_spans must be a nonempty list")
+        for span in requested_spans:
+            if not isinstance(span, dict) or set(span) != {"text", "occurrence"}:
+                raise Error("Each answer span needs only text and occurrence")
+            text, occurrence = span["text"], span["occurrence"]
+            if not isinstance(text, str) or not text.strip() or type(occurrence) is not int or occurrence < 1:
+                raise Error("Answer span needs exact text and a positive integer occurrence")
+            found = matches(text)
+            if occurrence > len(found):
+                raise Error("Answer span does not match Context with exact capitalization")
+            match = found[occurrence - 1]
+            selected.append((match.start(), match.end(), text, occurrence))
+        selected.sort()
+        if any(a[1] > b[0] for a, b in zip(selected, selected[1:])):
+            raise Error("Answer spans overlap or repeat the same position")
+
+    shared_answer = len({span[2] for span in selected}) == 1
+    derived_answer = selected[0][2] if shared_answer else "\n".join(
+        f"{i}. {span[2]}" for i, span in enumerate(selected, 1))
+    if answer and answer != derived_answer:
+        raise Error("Answer must match the selected spans in context order")
+    parts, end = [], 0
+    for i, (start, stop, text, occurrence) in enumerate(selected, 1):
+        parts.extend((context[end:start], "_____" if shared_answer else f"_____ ({i})"))
+        end = stop
+    parts.append(context[end:])
+    return "".join(parts), derived_answer, selected
+
+
 def validate(raw):
     if not isinstance(raw, dict):
         raise Error("Each record must be an object")
     allowed = {"sense", "fields", "tags", "context_origin", "original_context",
-               "ipa_source", "sources", "target_forms", "answer_start"}
+               "ipa_source", "sources", "target_forms", "answer_start", "answer_spans"}
     if set(raw) - allowed:
         raise Error("Unknown record properties: " + ", ".join(sorted(set(raw) - allowed)))
     sense = raw.get("sense", "")
@@ -63,7 +106,7 @@ def validate(raw):
             raise Error(f"{name} must be a string of at most 8000 characters")
         if any(ord(c) < 32 and c not in "\n\t" for c in value) or any(x in value.lower() for x in ("{{", "}}", "[sound:", "[anki:")):
             raise Error(f"{name}: control characters or Anki markup are not accepted")
-    for name in ("Term", "Definition", "Context", "Answer"):
+    for name in ("Term", "Definition", "Context"):
         if not fields[name].strip():
             raise Error(f"Missing {name}")
     if len(fields["Term"]) > 160 or len(fields["Definition"]) > 500 or len(fields["Context"]) > 2000:
@@ -76,20 +119,22 @@ def validate(raw):
     context, answer = fields["Context"], fields["Answer"]
     if len(context.split()) < 4 or "_____" in context:
         raise Error("Context must be a complete example, without an existing blank")
-    matches = list(re.finditer(r"(?<!\w)" + re.escape(answer) + r"(?!\w)", context))
-    if len(matches) != 1:
-        raise Error("Answer must occur exactly once, with exact capitalization, in Context")
-    start = matches[0].start()
+    if "answer_spans" in raw and raw["answer_spans"] is None:
+        raise Error("answer_spans must be a nonempty list")
+    prompt, answer, selected = cloze_fields(context, answer, raw.get("answer_spans"))
+    start = selected[0][0]
     if "answer_start" in raw and raw["answer_start"] != start:
         raise Error("answer_start does not match the exact target span")
-    prompt = context[:start] + "_____" + context[start + len(answer):]
     if supplied.get("Prompt") and supplied["Prompt"] != prompt:
-        raise Error("Prompt must replace only the exact Answer span")
+        raise Error("Prompt must match the selected answer spans")
     fields["Prompt"] = prompt
+    fields["Answer"] = answer
+    if any(len(fields[name]) > 8000 for name in ("Prompt", "Answer")):
+        raise Error("Derived Prompt or Answer exceeds the 8000-character field limit")
     forms = raw.get("target_forms", [])
     if not isinstance(forms, list) or any(not isinstance(x, str) or not x.strip() for x in forms):
         raise Error("target_forms must be a list of nonempty strings")
-    forms = sorted(set(forms + [fields["Term"], answer]))
+    forms = sorted(set(forms + [fields["Term"]] + [span[2] for span in selected]))
     if fields["Productive"]:
         for name in ("Definition", "Prompt", "Hint"):
             if any(contains(fields[name], form) for form in forms):
@@ -125,6 +170,9 @@ def validate(raw):
     record = {"schema_version": 1, "sense": sense, "fields": fields, "tags": tags,
               "context_origin": origin, "original_context": original,
               "ipa_source": ipa_source, "sources": sources, "target_forms": forms}
+    if "answer_spans" in raw:
+        record["answer_spans"] = [{"text": text, "occurrence": occurrence}
+                                  for _, _, text, occurrence in selected]
     record["id"] = hashlib.sha256(canonical(record).encode()).hexdigest()
     return record
 
@@ -132,6 +180,8 @@ def validate(raw):
 def check_record(record):
     raw = {k: record[k] for k in ("sense", "fields", "tags", "context_origin",
                                 "original_context", "ipa_source", "sources", "target_forms")}
+    if "answer_spans" in record:
+        raw["answer_spans"] = record["answer_spans"]
     if validate(raw) != record:
         raise Error("Queue record validation or checksum failed; original file preserved")
 

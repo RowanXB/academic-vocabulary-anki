@@ -135,6 +135,133 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(enqueue(self.root, [self.raw])["enqueued"], 0)
         self.assertEqual(len(self.pending()), 1)
 
+    def test_repeated_answer_blanks_all_occurrences_in_every_card_mode(self):
+        context = "The effect was attenuated, but it was not attenuated equally across groups."
+        self.raw["fields"]["Context"] = self.raw["original_context"] = context
+        self.raw["answer_start"] = context.index("attenuated")
+        for receptive, productive in (("", "1"), ("1", ""), ("1", "1")):
+            with self.subTest(receptive=receptive, productive=productive):
+                self.raw["fields"].update(Receptive=receptive, Productive=productive)
+                record = validate(self.raw)
+                self.assertEqual(record["fields"]["Context"], context)
+                self.assertEqual(record["fields"]["Answer"], "attenuated")
+                self.assertEqual(record["fields"]["Prompt"],
+                                 "The effect was _____, but it was not _____ equally across groups.")
+                check_record(record)
+
+    def test_repeated_answer_offline_recovery_and_lost_response_remain_idempotent(self):
+        context = "The effect was attenuated, but it was not attenuated equally across groups."
+        self.raw["fields"]["Context"] = self.raw["original_context"] = context
+        enqueue(self.root, [self.raw])
+        self.api.offline = True
+        self.assertEqual(self.run_sync()["pending"], 1)
+        self.api.offline = False
+        self.api.lose_add_response = True
+        self.assertEqual(self.run_sync()["pending"], 1)
+        self.assertEqual(self.run_sync()["confirmed"], 1)
+        enqueue(self.root, [self.raw])
+        self.assertEqual(self.run_sync()["results"][0]["disposition"], "existing")
+        self.assertEqual(len(self.api.notes), 1)
+        self.assertEqual(len(self.api.notes[1]["cards"]), 1)
+        self.assertEqual(self.api.notes[1]["fields"]["Prompt"]["value"].count("_____"), 2)
+        self.assertEqual(self.pending(), [])
+
+    def test_repeated_answer_rejects_partially_blank_prompt(self):
+        context = "The effect was attenuated, but it was not attenuated equally across groups."
+        self.raw["fields"]["Context"] = self.raw["original_context"] = context
+        self.raw["fields"]["Prompt"] = "The effect was _____, but it was not attenuated equally across groups."
+        with self.assertRaisesRegex(Error, "selected answer spans"):
+            validate(self.raw)
+
+    def test_repeated_phrase_preserves_word_boundaries(self):
+        raw = copy.deepcopy(EXAMPLES[1])
+        raw["fields"]["Context"] = "We studied anterograde amnesia and anterograde amnesia, not anterograde amnesias."
+        record = validate(raw)
+        self.assertEqual(record["fields"]["Prompt"],
+                         "We studied _____ and _____, not anterograde amnesias.")
+
+    def test_other_target_forms_still_cannot_leak_from_productive_prompt(self):
+        context = "The effect was attenuated, and this may attenuate later responses."
+        self.raw["fields"]["Context"] = self.raw["original_context"] = context
+        with self.assertRaisesRegex(Error, "Prompt leaks a target form"):
+            validate(self.raw)
+        self.raw["fields"].update(Receptive="1", Productive="")
+        self.assertEqual(validate(self.raw)["fields"]["Context"], context)
+
+    def test_model_selects_different_forms_and_script_numbers_them_in_context_order(self):
+        context = "The intervention may attenuate the response, as it attenuated earlier responses."
+        self.raw["fields"]["Context"] = self.raw["original_context"] = context
+        self.raw["fields"].pop("Answer")
+        self.raw["fields"]["Hint"] = "verb; starts with a; use the form required by each clause"
+        self.raw["answer_spans"] = [{"text": "attenuated", "occurrence": 1},
+                                    {"text": "attenuate", "occurrence": 1}]
+        record = validate(self.raw)
+        self.assertEqual(record["fields"]["Prompt"],
+                         "The intervention may _____ (1) the response, as it _____ (2) earlier responses.")
+        self.assertEqual(record["fields"]["Answer"], "1. attenuate\n2. attenuated")
+        self.assertEqual(record["fields"]["Context"], context)
+        self.assertEqual(record["answer_spans"][0]["text"], "attenuate")
+        check_record(record)
+        enqueue(self.root, [self.raw])
+        self.api.lose_add_response = True
+        self.assertEqual(self.run_sync()["pending"], 1)
+        self.assertEqual(self.run_sync()["confirmed"], 1)
+        enqueue(self.root, [self.raw])
+        self.assertEqual(self.run_sync()["results"][0]["disposition"], "existing")
+        self.assertEqual(len(self.api.notes), 1)
+        self.assertEqual(len(self.api.notes[1]["cards"]), 1)
+        self.assertEqual(self.api.notes[1]["fields"]["Answer"]["value"], "1. attenuate<br>2. attenuated")
+
+    def test_model_selected_repeated_form_uses_one_shared_answer(self):
+        context = "The effect was attenuated, but it was not attenuated equally across groups."
+        self.raw["fields"]["Context"] = self.raw["original_context"] = context
+        self.raw["answer_spans"] = [{"text": "attenuated", "occurrence": 1},
+                                    {"text": "attenuated", "occurrence": 2}]
+        record = validate(self.raw)
+        self.assertEqual(record["fields"]["Answer"], "attenuated")
+        self.assertEqual(record["fields"]["Prompt"].count("_____"), 2)
+        check_record(record)
+
+    def test_invalid_model_selections_rejected_without_caching(self):
+        invalid = [None, [], [{"text": "attenuated", "occurrence": True}],
+                   [{"text": "attenuated", "occurrence": 0}],
+                   [{"text": "attenuated", "occurrence": 2}],
+                   [{"text": "Attenuated", "occurrence": 1}],
+                   [{"text": "attenuated", "occurrence": 1, "extra": 1}],
+                   [{"text": "attenuated", "occurrence": 1}] * 2,
+                   [{"text": "was attenuated", "occurrence": 1},
+                    {"text": "attenuated", "occurrence": 1}]]
+        for spans in invalid:
+            with self.subTest(spans=spans):
+                self.raw["answer_spans"] = spans
+                with self.assertRaises(Error):
+                    enqueue(self.root, [self.raw])
+                self.assertEqual(self.pending(), [])
+
+    def test_model_cannot_leave_a_visible_copy_of_a_productive_answer(self):
+        context = "The effect was attenuated, but it was not attenuated equally across groups."
+        self.raw["fields"]["Context"] = self.raw["original_context"] = context
+        self.raw["answer_spans"] = [{"text": "attenuated", "occurrence": 2}]
+        with self.assertRaisesRegex(Error, "Prompt leaks a target form"):
+            validate(self.raw)
+
+    def test_model_supplied_answer_must_agree_with_selected_text(self):
+        self.raw["answer_spans"] = [{"text": "attenuated", "occurrence": 1}]
+        self.raw["fields"]["Answer"] = "attenuate"
+        with self.assertRaisesRegex(Error, "Answer must match"):
+            validate(self.raw)
+
+    def test_oversized_derived_prompt_is_rejected_before_storage(self):
+        raw = {"sense": "letter-symbol", "fields": {
+            "Term": "a", "Definition": "The first selected symbol.",
+            "Context": " ".join(["a", "b"] * 500), "Receptive": "1"},
+            "context_origin": "generated", "tags": ["academic"],
+            "answer_spans": [{"text": text, "occurrence": i}
+                             for text in ("a", "b") for i in range(1, 501)]}
+        with self.assertRaisesRegex(Error, "Derived Prompt or Answer exceeds"):
+            enqueue(self.root, [raw])
+        self.assertFalse((self.root / "data/pending.jsonl").exists())
+
     def test_offline_then_online(self):
         enqueue(self.root, [self.raw])
         before = (self.root / "data/pending.jsonl").read_bytes()
