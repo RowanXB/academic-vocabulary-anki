@@ -29,7 +29,7 @@ Open a local agent session that can run shell commands (for example Claude Code 
 
 ```text
 Install the agent skill from https://github.com/RowanXB/academic-vocabulary-anki on this Mac:
-1. Check that python3 is version 3.9 or later, and that Anki (/Applications/Anki.app) and the AnkiConnect add-on (folder 2055492159 in Anki's addons21 directory) are installed. If anything is missing, tell me what and how you would install it, and install only after I confirm. Anki can come from https://apps.ankiweb.net or `brew install --cask anki`. For AnkiConnect, guide me through Anki → Tools → Add-ons → Get Add-ons with code 2055492159 and a restart, instead of copying add-on files yourself.
+1. Check that python3 is version 3.9 or later, and that Anki (/Applications/Anki.app) and the AnkiConnect add-on (folder 2055492159 in Anki's addons21 directory) are installed. If anything is missing, tell me what and how you would install it, and install it yourself only after I confirm. For Anki, prefer `brew install --cask anki`; without Homebrew, use the installer from https://apps.ankiweb.net. For AnkiConnect, quit Anki, download the official add-on from https://ankiweb.net/shared/download/2055492159?v=2.1&p=<point> (p is the installed Anki version as digits, e.g. 25.07.5 → 250705; it serves AnkiConnect.ankiaddon, a zip file), extract it into ~/Library/Application Support/Anki2/addons21/2055492159, then start Anki again.
 2. Ask me which directory to install the skill in, and suggest this runtime's own skills directory as the default. Do not choose for me.
 3. Clone the repository into the directory I choose. If that path already exists, stop and show me what is there.
 4. Open Anki, then run scripts/sync.py --status from the clone and show me the result; "available" means AnkiConnect is responding.
@@ -51,7 +51,7 @@ If the target already exists, inspect it manually and do not overwrite it.
 
 ## Set up AnkiConnect
 
-If AnkiConnect is not installed, enter the official code `2055492159` in Anki → Tools → Add-ons → Get Add-ons, then restart Anki. Keep the bind address `127.0.0.1` and port `8765`; no CORS wildcard and no relaxed security settings are needed. If the add-on has an API key enabled, pass it to the scripts through the `ANKICONNECT_API_KEY` environment variable; never put the key in notes, the skill or a chat.
+If AnkiConnect is not installed, enter the official code `2055492159` in Anki → Tools → Add-ons → Get Add-ons, then restart Anki. Alternatively, download `AnkiConnect.ankiaddon` from `https://ankiweb.net/shared/download/2055492159?v=2.1&p=<point>` (for Anki 25.07.5, `p=250705`) and open it with Anki to install. Keep the bind address `127.0.0.1` and port `8765`; no CORS wildcard and no relaxed security settings are needed. If the add-on has an API key enabled, pass it to the scripts through the `ANKICONNECT_API_KEY` environment variable; never put the key in notes, the skill or a chat.
 
 ## First-time initialization
 
