@@ -19,6 +19,9 @@ from sync import initialize, synchronize
 
 VOICES = "voices=Apple_Samantha,Microsoft_Zira,Microsoft_David"
 BASE_FORM_LABEL = '<span class="label" style="display: inline; margin-right: 6px;">Base form</span>'
+# Digest of the card templates in assets/. When the templates change, this test fails on purpose:
+# add this old value to PREVIOUS_TEMPLATE_DIGESTS in scripts/common.py, then update it here.
+CURRENT_TEMPLATE_DIGEST = "d6398428bf8867633a8d51cb6d47050f05b0da62004e25fbf2907f2358328af2"
 BASE_FORM_TERM = '<span class="term" style="font-size: 24px;">{{Term}}</span>'
 EXAMPLES = json.loads((SKILL / "evals/live-examples.json").read_text(encoding="utf-8"))
 
@@ -437,6 +440,13 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaisesRegex(Error, "templates differ"):
             initialize(self.root, self.api)
         self.assertEqual(self.api.card_templates["Productive"]["Front"], "Custom template")
+
+    def test_template_changes_register_the_previous_version(self):
+        digest = common.template_digest({t["Name"]: {"Front": t["Front"], "Back": t["Back"]} for t in templates()})
+        self.assertEqual(digest, CURRENT_TEMPLATE_DIGEST,
+                         "Card templates changed: add " + CURRENT_TEMPLATE_DIGEST + " to PREVIOUS_TEMPLATE_DIGESTS "
+                         "in scripts/common.py so sync.py --init can upgrade it, then set CURRENT_TEMPLATE_DIGEST to " + digest)
+        self.assertNotIn(digest, common.PREVIOUS_TEMPLATE_DIGESTS)
 
     def test_foreign_deck_untouched(self):
         self.add()
