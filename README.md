@@ -7,7 +7,7 @@ A local Agent Skill plus Python standard-library scripts. It works in local runt
 Ask a local agent that can run shell commands, such as Claude Code or Codex:
 
 ```text
-Install the agent skill from https://github.com/RowanXB/academic-vocabulary-anki on this Mac.
+Install the agent skill from https://github.com/RowanXB/academic-vocabulary-anki on this computer.
 ```
 
 Agents and manual installers follow the same steps in [references/setup.md](references/setup.md#installation), which also covers daily use, maintenance and troubleshooting.

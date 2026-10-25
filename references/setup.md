@@ -4,9 +4,11 @@ This guide covers installation, daily use, maintenance and troubleshooting. Inst
 
 ## Requirements
 
-- macOS
+- macOS or Windows
 - Python 3.9 or later (the scripts use only the standard library)
 - Anki with the AnkiConnect add-on
+
+Commands in this guide use `python3` and `~`. On Windows, use `py -3` (or `python`) for `python3`, and `%USERPROFILE%` for `~`.
 
 ## Installation
 
@@ -15,7 +17,7 @@ This guide covers installation, daily use, maintenance and troubleshooting. Inst
 Open a local agent session that can run shell commands, such as Claude Code or Codex, and send:
 
 ```text
-Install the agent skill from https://github.com/RowanXB/academic-vocabulary-anki on this Mac.
+Install the agent skill from https://github.com/RowanXB/academic-vocabulary-anki on this computer.
 ```
 
 The agent follows the steps below. When an agent runs them, it must:
@@ -33,17 +35,25 @@ To install manually, run the same steps yourself.
 python3 --version
 ```
 
-macOS does not always ship with Python. If it is missing or older than 3.9, install Python 3 from https://www.python.org/downloads/ (or with Homebrew if you already use it).
+On Windows, run `py -3 --version`.
+
+macOS and Windows do not always ship with Python. If it is missing or older than 3.9, install Python 3 from https://www.python.org/downloads/ (or with Homebrew on macOS if you already use it).
 
 ### Step 2: Install Anki
 
-Skip this step if `/Applications/Anki.app` exists.
+Skip this step if Anki is already installed (on macOS, `/Applications/Anki.app` exists).
 
-Download the macOS dmg for this Mac's chip from https://apps.ankiweb.net (`uname -m` prints `arm64` for Apple Silicon and `x86_64` for Intel), mount it, copy `Anki.app` to `/Applications`, then unmount it. If you already manage apps with Homebrew, `brew install --cask anki` works instead.
+- macOS: download the dmg for this Mac's chip from https://apps.ankiweb.net (`uname -m` prints `arm64` for Apple Silicon and `x86_64` for Intel), mount it, copy `Anki.app` to `/Applications`, then unmount it. If you already manage apps with Homebrew, `brew install --cask anki` works instead.
+- Windows: download the Windows installer from https://apps.ankiweb.net and run it.
 
 ### Step 3: Install AnkiConnect
 
-Skip this step if `~/Library/Application Support/Anki2/addons21/2055492159` exists.
+Skip this step if the add-on folder already exists:
+
+| System | AnkiConnect folder |
+|---|---|
+| macOS | `~/Library/Application Support/Anki2/addons21/2055492159` |
+| Windows | `%APPDATA%\Anki2\addons21\2055492159` |
 
 Quit Anki, download the official add-on from AnkiWeb and extract it into that folder, then start Anki again:
 
@@ -59,7 +69,7 @@ Keep AnkiConnect's bind address `127.0.0.1` and port `8765`; no CORS wildcard an
 
 Clone the repository into a directory your runtime loads skills from. Common locations:
 
-| Runtime | Skill directory |
+| Runtime | Skill directory (on Windows, `~` is `%USERPROFILE%`) |
 |---|---|
 | Codex and other runtimes that read the Agent Skills user directory | `~/.agents/skills/academic-vocabulary-anki/` |
 | Claude Code | `~/.claude/skills/academic-vocabulary-anki/` |
@@ -133,6 +143,7 @@ If you clear the current profile yourself: keep the local project first; after c
 ## Troubleshooting
 
 - `pending`: the content is still in data/pending.jsonl. Open or wake Anki, finish any open dialog, then sync again. macOS can also put background apps to sleep and cause a temporary timeout; wake Anki and retry, without changing system settings automatically.
+- Windows "file in use" or permission errors while saving: another program, such as antivirus or an editor, has a file in `data/` open. Close it and retry; records already saved stay pending until the next sync.
 - `failed`: read the JSON error. If `saved_pending` was printed earlier, the cache is still saved; otherwise do not assume anything was saved. A corrupted JSONL file stops processing and the original file is kept; bad lines are never dropped automatically.
 - Duplicate sense: run lookup first and reuse the sense. The scripts only guarantee idempotency for a stable Key; comparing meanings is the AI's job. Renaming a sense must not be used to bypass deduplication.
 - Existing content: only completely empty compatible fields are filled; manual text, review history, card flags and existing CSS are never overwritten. Replacing an old context or enabling another card direction is a separate, explicit edit. Do not edit the same note or switch profiles in Anki while syncing; AnkiConnect has no atomic conditional update across requests.
@@ -140,12 +151,12 @@ If you clear the current profile yourself: keep the local project first; after c
 - Field or template mismatch: sync stops for manual review; user templates are never overwritten automatically. CSS can be adjusted freely and does not affect the script checks.
 - The `context_user`/`context_generated` tags describe the context currently stored in Anki; a new original sentence from a repeated input is kept in history instead of pretending Anki's context was replaced.
 - Anki's native tags are case-insensitive and may reuse an existing spelling such as `Statistics`; the scripts compare tags by the same rule and never rename tags across the collection.
-- An empty IPA is a deliberate "not verified" state. TTS uses the device's built-in en_US voice: on desktop, install an American voice in the system speech settings and restart Anki. The templates do not pin a specific Apple voice, so they also work on mobile.
+- An empty IPA is a deliberate "not verified" state. TTS uses the device's built-in en_US voice: on desktop, install an American English voice in the macOS or Windows speech settings and restart Anki. The templates do not pin a specific Apple voice, so they also work on mobile.
 - iOS/Android: sync the deck through your existing AnkiWeb sync and configure an en_US TTS engine or voice on the device. The scripts import into the local collection only and never run a full AnkiWeb sync. Actual mobile display and playback still need to be checked on each device.
 
 ## How data is stored
 
-data/pending.jsonl is created on the first collected word; data/history.jsonl records the receipt and full vocabulary data only after a successful read-back confirmation. Writes use a temporary file in the same directory, fsync, macOS F_FULLFSYNC, atomic replacement and a process lock. If the process stops after a successful write to Anki, the next run finds the original note by Key instead of creating it again. A pending entry is removed only after the history record has been written. The directory is private and data files have 0600 permissions; there are no per-day files, no database, and Anki's internal database is never read.
+data/pending.jsonl is created on the first collected word; data/history.jsonl records the receipt and full vocabulary data only after a successful read-back confirmation. Writes use a temporary file in the same directory, fsync (plus F_FULLFSYNC on macOS), atomic replacement and a process lock (`flock` on macOS and Linux, `msvcrt.locking` on Windows). The containing directory is also fsynced on macOS and Linux; Windows cannot open a directory for that, and relies on the atomic replacement. If the process stops after a successful write to Anki, the next run finds the original note by Key instead of creating it again. A pending entry is removed only after the history record has been written. On macOS the directory is private and data files have 0600 permissions; on Windows they inherit the user profile's access rules; there are no per-day files, no database, and Anki's internal database is never read.
 
 ## Tests
 

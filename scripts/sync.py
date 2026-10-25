@@ -7,7 +7,7 @@ from pathlib import Path
 import sys
 from common import (Anki, Error, Unavailable, ROOT, NAME, FIELDS, check_profile, check_record,
                     config, contains, durable_replace, encode_fields, ensure_model, find_key, locked,
-                    normalized, note_fields, plain, read_jsonl, write_jsonl)
+                    normalized, note_fields, plain, read_jsonl, use_utf8_stdio, write_jsonl)
 
 
 def sync_note(api, record):
@@ -161,6 +161,7 @@ def status(root):
 
 
 def main():
+    use_utf8_stdio()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT)
     group = parser.add_mutually_exclusive_group()

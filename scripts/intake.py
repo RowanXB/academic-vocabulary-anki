@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
-from common import Error, ROOT, check_record, locked, read_jsonl, validate, write_jsonl
+from common import Error, ROOT, check_record, locked, read_jsonl, use_utf8_stdio, validate, write_jsonl
 
 
 def enqueue(root, raw_records):
@@ -29,6 +29,7 @@ def enqueue(root, raw_records):
 
 
 def main():
+    use_utf8_stdio()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", nargs="?", default="-", help="JSON object/array or JSONL; '-' reads stdin")
     parser.add_argument("--root", type=Path, default=ROOT)

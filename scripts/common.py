@@ -1,16 +1,26 @@
 """Local, standard-library-only storage and AnkiConnect primitives."""
 import contextlib
-import fcntl
 import hashlib
 import html
 import json
 import os
 from pathlib import Path
 import re
+import sys
 import tempfile
 import unicodedata
 import urllib.error
 import urllib.request
+try:
+    import fcntl
+except ImportError:  # Windows
+    fcntl = None
+try:
+    import msvcrt
+except ImportError:  # macOS and Linux
+    msvcrt = None
+
+WINDOWS = os.name == "nt"
 
 NAME = "Academic Vocabulary"
 FIELDS = ["Key", "Term", "Definition", "Context", "Prompt", "Answer", "Hint",
@@ -198,11 +208,13 @@ def durable_replace(path, contents):
             if hasattr(fcntl, "F_FULLFSYNC"):
                 fcntl.fcntl(stream.fileno(), fcntl.F_FULLFSYNC)
         os.replace(temporary, path)
-        directory = os.open(path.parent, os.O_RDONLY)
-        try:
-            os.fsync(directory)
-        finally:
-            os.close(directory)
+        # Windows cannot open a directory for fsync; os.replace is already atomic there.
+        if not WINDOWS:
+            directory = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
@@ -227,6 +239,26 @@ def write_jsonl(path, rows):
     durable_replace(path, "".join(canonical(row) + "\n" for row in rows))
 
 
+def lock_file(fd):
+    if WINDOWS:
+        # msvcrt locks a byte range from the current position; always lock byte 0.
+        os.lseek(fd, 0, os.SEEK_SET)
+        try:
+            msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+        except OSError as exc:
+            raise BlockingIOError(*exc.args) from exc
+    else:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+
+def unlock_file(fd):
+    if WINDOWS:
+        os.lseek(fd, 0, os.SEEK_SET)
+        msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+    else:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+
+
 @contextlib.contextmanager
 def locked(root):
     data = Path(root) / "data"
@@ -234,18 +266,25 @@ def locked(root):
     fd = os.open(data / ".lock", os.O_CREAT | os.O_RDWR, 0o600)
     with os.fdopen(fd, "a") as stream:
         try:
-            fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            lock_file(stream.fileno())
         except BlockingIOError as exc:
             raise Error("Another intake/sync is running; retry after it finishes") from exc
         try:
             yield data
         finally:
-            fcntl.flock(stream, fcntl.LOCK_UN)
+            unlock_file(stream.fileno())
+
+
+def use_utf8_stdio():
+    """Keep JSON input and output in UTF-8 even under a legacy Windows code page."""
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
 
 
 def config(root):
     path = Path(root) / "config.json"
-    cfg = json.loads(path.read_text()) if path.exists() else {}
+    cfg = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     if cfg.get("endpoint", ENDPOINT) != ENDPOINT:
         raise Error("Only local http://127.0.0.1:8765 is permitted")
     if not isinstance(cfg.get("timeout_seconds", 8), (int, float)) or not 1 <= cfg.get("timeout_seconds", 8) <= 30:
@@ -296,8 +335,8 @@ def note_fields(note):
 
 def templates():
     return [{"Name": name,
-             "Front": (ASSETS / (prefix + "-front.html")).read_text(),
-             "Back": (ASSETS / (prefix + "-back.html")).read_text()}
+             "Front": (ASSETS / (prefix + "-front.html")).read_text(encoding="utf-8"),
+             "Back": (ASSETS / (prefix + "-back.html")).read_text(encoding="utf-8")}
             for name, prefix in (("Receptive", "receptive"), ("Productive", "productive"))]
 
 
@@ -312,7 +351,7 @@ def ensure_model(api):
     wanted = templates()
     if NAME not in api.call("modelNames"):
         api.call("createModel", modelName=NAME, inOrderFields=FIELDS, cardTemplates=wanted,
-                 css=(ASSETS / "cards.css").read_text(), isCloze=False)
+                 css=(ASSETS / "cards.css").read_text(encoding="utf-8"), isCloze=False)
     if api.call("modelFieldNames", modelName=NAME) != FIELDS:
         raise Error("Existing Academic Vocabulary fields differ; no model changes performed")
     existing = api.call("modelTemplates", modelName=NAME)

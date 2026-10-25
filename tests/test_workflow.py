@@ -1,5 +1,6 @@
 import copy
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -9,6 +10,7 @@ from unittest.mock import patch
 
 SKILL = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SKILL / "scripts"))
+import common
 from common import (Anki, Error, Unavailable, FIELDS, NAME, check_record, durable_replace,
                     encode_fields, locked, make_key, read_jsonl, templates, validate, write_jsonl)
 from intake import enqueue
@@ -478,7 +480,55 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(json.loads(result.stdout)["status"], "saved_pending")
         self.assertEqual(len(self.pending()), 2)
-        self.assertEqual((self.root / "data/pending.jsonl").stat().st_mode & 0o777, 0o600)
+        if os.name != "nt":  # Windows has no POSIX mode bits; the user profile ACL applies.
+            self.assertEqual((self.root / "data/pending.jsonl").stat().st_mode & 0o777, 0o600)
+
+    def test_windows_lock_excludes_second_holder(self):
+        held = set()
+
+        class FakeMsvcrt:
+            LK_NBLCK, LK_UNLCK = 2, 0
+
+            def locking(self, fd, mode, nbytes):
+                identity = os.fstat(fd).st_ino
+                if mode == self.LK_UNLCK:
+                    held.discard(identity)
+                elif identity in held:
+                    raise PermissionError(13, "locked")
+                else:
+                    held.add(identity)
+
+        with patch.object(common, "WINDOWS", True), patch.object(common, "msvcrt", FakeMsvcrt()):
+            with locked(self.root):
+                with self.assertRaisesRegex(Error, "Another intake/sync"):
+                    with locked(self.root):
+                        pass
+            with locked(self.root):
+                pass
+
+    def test_windows_write_skips_directory_fsync(self):
+        real_open = os.open
+
+        def no_directory_open(path, flags, *args):
+            if os.path.isdir(path):
+                raise PermissionError(13, "directories cannot be opened on Windows")
+            return real_open(path, flags, *args)
+
+        path = self.root / "data/pending.jsonl"
+        with patch.object(common.os, "open", no_directory_open):
+            with self.assertRaises(PermissionError):
+                write_jsonl(path, [{"n": 1}])
+            with patch.object(common, "WINDOWS", True):
+                write_jsonl(path, [{"n": 2}])
+        self.assertEqual(read_jsonl(path), [{"n": 2}])
+
+    def test_cli_output_is_utf8_under_legacy_console_encoding(self):
+        self.add()
+        env = dict(os.environ, PYTHONIOENCODING="cp1252")
+        result = subprocess.run([sys.executable, str(SKILL / "scripts/lookup.py"), "attenuate", "--root", str(self.root), "--offline"], capture_output=True, env=env)
+        self.assertEqual(result.returncode, 0, result.stderr.decode("utf-8", "replace"))
+        output = json.loads(result.stdout.decode("utf-8"))
+        self.assertIn("ə", output["local_records"][0]["fields"]["IPA"])
 
     def test_lookup_offline_retains_sense_and_context(self):
         self.add()

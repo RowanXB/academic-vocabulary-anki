@@ -4,7 +4,8 @@ import argparse
 import json
 from pathlib import Path
 import sys
-from common import Anki, Error, NAME, ROOT, check_profile, config, locked, normalized, plain, read_jsonl
+from common import (Anki, Error, NAME, ROOT, check_profile, config, locked, normalized, plain, read_jsonl,
+                    use_utf8_stdio)
 
 
 def lookup(root, term, offline=False):
@@ -32,6 +33,7 @@ def lookup(root, term, offline=False):
 
 
 def main():
+    use_utf8_stdio()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("term")
     parser.add_argument("--root", type=Path, default=ROOT)
