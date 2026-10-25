@@ -39,7 +39,7 @@ Python 3.9 or later is required, and neither system always ships with it.
 ### Step 2: Install Anki
 
 - macOS: skip this step if `/Applications/Anki.app` exists. Otherwise download the dmg for this Mac's chip from https://apps.ankiweb.net (`uname -m` prints `arm64` for Apple Silicon and `x86_64` for Intel), mount it, copy `Anki.app` to `/Applications`, then unmount it. If you already manage apps with Homebrew, `brew install --cask anki` works instead.
-- Windows: skip this step if Anki is already installed. Otherwise download the Windows installer from https://apps.ankiweb.net and run it.
+- Windows: skip this step if `%LOCALAPPDATA%\Programs\Anki\anki.exe` exists. Otherwise download the Windows `.msi` installer from https://apps.ankiweb.net (`anki-<version>-win-x64.msi`, or `-win-arm64.msi` for ARM) and run it. It installs for the current user; `msiexec /i <file>.msi /qn` installs it without any dialog.
 
 ### Step 3: Install AnkiConnect
 
@@ -91,7 +91,7 @@ Confirm that the active profile shown in step 5 is the one you want, then run on
 python3 <skill-dir>/scripts/sync.py --init
 ```
 
-Initialization binds that profile in `config.json`, creates the missing "Academic Vocabulary" deck and note type, and checks fields and templates. If an incompatible structure with the same name already exists, it stops and never overwrites it. Running it again is safe.
+Initialization binds that profile in `config.json`, creates the missing "Academic Vocabulary" deck and note type, and checks fields and templates. If an incompatible structure with the same name already exists, it stops and never overwrites it. Running it again is safe; after updating the skill, run it once more to upgrade card templates from an earlier version of this skill (templates you edited are left alone).
 
 ### Step 7: Load the skill
 

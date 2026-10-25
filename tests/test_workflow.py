@@ -15,8 +15,9 @@ from common import (Anki, Error, Unavailable, FIELDS, NAME, check_record, durabl
                     encode_fields, locked, make_key, read_jsonl, templates, validate, write_jsonl)
 from intake import enqueue
 from lookup import lookup
-from sync import synchronize
+from sync import initialize, synchronize
 
+VOICES = "voices=Apple_Samantha,Microsoft_Zira,Microsoft_David"
 EXAMPLES = json.loads((SKILL / "evals/live-examples.json").read_text(encoding="utf-8"))
 
 
@@ -59,6 +60,10 @@ class FakeAnki:
             return self.fields[:]
         if action == "modelTemplates":
             return copy.deepcopy(self.card_templates)
+        if action == "updateModelTemplates":
+            assert params["model"]["name"] == NAME
+            self.card_templates.update(copy.deepcopy(params["model"]["templates"]))
+            return None
         if action == "findNotes":
             return [nid for nid, note in self.notes.items() if "Key:" not in params["query"] or note["fields"]["Key"]["value"] in params["query"]]
         if action == "notesInfo":
@@ -392,6 +397,32 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(self.run_sync()["status"], "pending")
         self.assertEqual(self.api.card_templates["Productive"]["Front"], "Custom template")
 
+    def previous_release_templates(self):
+        return {t["Name"]: {"Front": t["Front"], "Back": t["Back"].replace(" " + VOICES, "")} for t in templates()}
+
+    def test_init_upgrades_previous_release_templates(self):
+        self.add()
+        self.api.card_templates = self.previous_release_templates()
+        self.assertEqual(initialize(self.root, self.api)["status"], "ready")
+        self.assertEqual(self.api.card_templates, {t["Name"]: {"Front": t["Front"], "Back": t["Back"]} for t in templates()})
+
+    def test_sync_leaves_previous_templates_and_points_to_init(self):
+        self.add()
+        previous = self.previous_release_templates()
+        self.api.card_templates = copy.deepcopy(previous)
+        enqueue(self.root, [self.raw])
+        result = self.run_sync()
+        self.assertEqual(result["status"], "pending")
+        self.assertIn("--init", result["reason"])
+        self.assertEqual(self.api.card_templates, previous)
+
+    def test_init_keeps_customized_templates(self):
+        self.add()
+        self.api.card_templates["Productive"]["Front"] = "Custom template"
+        with self.assertRaisesRegex(Error, "templates differ"):
+            initialize(self.root, self.api)
+        self.assertEqual(self.api.card_templates["Productive"]["Front"], "Custom template")
+
     def test_foreign_deck_untouched(self):
         self.add()
         self.api.foreign_deck = True
@@ -581,7 +612,8 @@ class WorkflowTests(unittest.TestCase):
         productive = templates()[1]
         self.assertIn("{{hint:Hint}}", productive["Front"])
         self.assertNotIn("{{Term}}", productive["Front"])
-        self.assertIn("{{tts en_US:Answer}}", productive["Back"])
+        self.assertIn("{{tts en_US " + VOICES + ":Answer}}", productive["Back"])
+        self.assertIn("{{tts en_US " + VOICES + ":Term}}", templates()[0]["Back"])
 
     def test_http_response_uncertainty(self):
         api = Anki({"timeout_seconds": 1})

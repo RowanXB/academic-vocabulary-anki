@@ -27,6 +27,10 @@ FIELDS = ["Key", "Term", "Definition", "Context", "Prompt", "Answer", "Hint",
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 ENDPOINT = "http://127.0.0.1:8765"
+# Digests of card templates shipped by earlier versions; only these are upgraded in place.
+PREVIOUS_TEMPLATE_DIGESTS = {
+    "bd16712c40f478a2dc70e58f86bc543afedb0ad65aa69b7db7dc69410c4be085",  # before preferred TTS voices
+}
 
 
 class Error(Exception):
@@ -342,16 +346,27 @@ def check_profile(api, cfg):
         raise Error("Active Anki profile differs from config.json; no writes performed")
 
 
-def ensure_model(api):
+def template_digest(model_templates):
+    return hashlib.sha256(canonical(model_templates).encode()).hexdigest()
+
+
+def ensure_model(api, upgrade=False):
     wanted = templates()
     if NAME not in api.call("modelNames"):
         api.call("createModel", modelName=NAME, inOrderFields=FIELDS, cardTemplates=wanted,
                  css=(ASSETS / "cards.css").read_text(encoding="utf-8"), isCloze=False)
     if api.call("modelFieldNames", modelName=NAME) != FIELDS:
         raise Error("Existing Academic Vocabulary fields differ; no model changes performed")
+    wanted_map = {t["Name"]: {"Front": t["Front"], "Back": t["Back"]} for t in wanted}
     existing = api.call("modelTemplates", modelName=NAME)
-    if existing != {t["Name"]: {"Front": t["Front"], "Back": t["Back"]} for t in wanted}:
-        raise Error("Existing templates differ; review them manually; no overwrite performed")
+    if existing != wanted_map:
+        if template_digest(existing) not in PREVIOUS_TEMPLATE_DIGESTS:
+            raise Error("Existing templates differ; review them manually; no overwrite performed")
+        if not upgrade:
+            raise Error("Card templates are from an earlier version of this skill; run sync.py --init to upgrade them")
+        api.call("updateModelTemplates", model={"name": NAME, "templates": wanted_map})
+        if api.call("modelTemplates", modelName=NAME) != wanted_map:
+            raise Error("Template upgrade could not be verified; review the note type manually")
     if NAME not in api.call("deckNames"):
         api.call("createDeck", deck=NAME)
 

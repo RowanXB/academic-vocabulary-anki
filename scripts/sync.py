@@ -128,10 +128,10 @@ def synchronize(root, api=None):
         return {"status": "synced", "confirmed": len(results), "pending": 0, "results": results}
 
 
-def initialize(root):
+def initialize(root, api=None):
     with locked(root):
         cfg = config(root)
-        api = Anki(cfg)
+        api = api or Anki(cfg)
         version = api.call("version")
         profile = api.call("getActiveProfile")
         if cfg.get("expected_profile") and cfg["expected_profile"] != profile:
@@ -140,7 +140,7 @@ def initialize(root):
             cfg.update({"endpoint": "http://127.0.0.1:8765", "expected_profile": profile,
                         "timeout_seconds": 8, "api_key_env": "ANKICONNECT_API_KEY"})
             durable_replace(Path(root) / "config.json", json.dumps(cfg, indent=2) + "\n")
-        ensure_model(api)
+        ensure_model(api, upgrade=True)
         return {"status": "ready", "api_version": version, "profile": profile,
                 "deck": NAME, "note_type": NAME, "fields": FIELDS}
 
@@ -164,7 +164,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT)
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("--init", action="store_true", help="Bind current profile and create missing deck/model")
+    group.add_argument("--init", action="store_true", help="Bind current profile, create missing deck/model and upgrade templates from earlier versions")
     group.add_argument("--status", action="store_true", help="Read-only API check")
     args = parser.parse_args()
     try:
