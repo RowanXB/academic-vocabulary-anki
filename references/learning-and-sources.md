@@ -11,7 +11,7 @@ Design decisions, not claims of a uniquely optimal vocabulary method:
 Implementation references:
 
 - [Anki conditional card generation](https://docs.ankiweb.net/templates/generation.html): the entire front is inside the relevant flag condition.
-- [Anki TTS and native hints](https://docs.ankiweb.net/templates/fields.html): `{{tts en_US:Term}}`, `{{tts en_US:Answer}}`, `{{hint:Hint}}`.
+- [Anki TTS and native hints](https://docs.ankiweb.net/templates/fields.html): `{{tts en_US voices=Apple_Samantha,Microsoft_Zira,Microsoft_David:Term}}`, the same for `Answer`, and `{{hint:Hint}}`.
 - [AnkiConnect upstream](https://git.sr.ht/~foosoft/anki-connect): v6 actions verified against the locally installed add-on's source during setup. No modifications made to the add-on.
 
 Example content sources checked on 2026-10-25:
