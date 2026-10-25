@@ -4,16 +4,28 @@
 
 仓库与 Skill 默认位置：`~/.agents/skills/academic-vocabulary-anki/`。`SKILL.md`、scripts、references 等直接位于仓库根目录，完整 Git 历史一并保留。`config.json` 和运行数据放在项目根目录；换电脑时同时备份整个项目目录，尤其是 pending、history 和 config。
 
-Codex 原生本地安装位置：`~/.codex/skills/academic-vocabulary-anki/`。本次保留指向上述仓库根目录的符号链接，避免维护两份代码。`~/.agents/skills/academic-vocabulary-anki/SKILL.md` 也是可直接调用的标准 Skill 入口。新开 Codex 对话加载新技能；如未出现，重启 Codex。也可显式提供 SKILL.md 路径。此安装不等于 ChatGPT Cloud 已安装或可以访问本机。
+各运行环境通过符号链接读取同一份仓库，避免维护两份代码：
 
-在另一台 Mac 上，将文件包解压后放到同样的项目目录，再安装链接（如目标已存在，先人工检查，不覆盖）：
+| 运行环境 | 读取位置 | 本机状态 |
+|---|---|---|
+| 遵循 Agent Skills 标准目录的运行环境 | `~/.agents/skills/academic-vocabulary-anki/` | 仓库本身 |
+| Claude Code | `~/.claude/skills/academic-vocabulary-anki/` | `~/.claude/skills` 整体链接到 `~/.agents/skills` |
+| Codex | `~/.codex/skills/academic-vocabulary-anki/` | 单独链接到仓库根目录 |
+
+新开对话加载新技能；如未出现，重启该运行环境，或显式提供 SKILL.md 路径。本地安装不等于云端会话已安装或可以访问本机。
+
+在另一台 Mac 上，将文件包解压后放到同样的仓库目录，再只为实际使用的运行环境安装链接（如目标已存在，先人工检查，不覆盖）：
 
 ```sh
 mkdir -p ~/.codex/skills
 ln -s ~/.agents/skills/academic-vocabulary-anki ~/.codex/skills/academic-vocabulary-anki
+mkdir -p ~/.claude/skills
+ln -s ~/.agents/skills/academic-vocabulary-anki ~/.claude/skills/academic-vocabulary-anki
 ```
 
-首次在词汇专用对话发送：`使用 $academic-vocabulary-anki，把这个对话作为词汇收集对话。之后我发来的词汇请自动保存到 Anki。` 之后发送词或截图即可。自动发现是模型行为，无法保证每次都触发；显式启用一次并使用专门对话最稳妥。本项目没有后台常驻程序，打开 Anki 本身不会触发补同步；下次收词或执行同步时会重试。
+若 `~/.claude/skills` 已经是指向 `~/.agents/skills` 的链接（如本机），跳过最后两行，否则 `ln -s` 会在仓库内部再建一个自指链接。
+
+首次在词汇专用对话发送：`使用 academic-vocabulary-anki，把这个对话作为词汇收集对话。之后我发来的词汇请自动保存到 Anki。`（Codex 可写 `$academic-vocabulary-anki`，Claude Code 可用 `/academic-vocabulary-anki`。） 之后发送词或截图即可。自动发现是模型行为，无法保证每次都触发；显式启用一次并使用专门对话最稳妥。本项目没有后台常驻程序，打开 Anki 本身不会触发补同步；下次收词或执行同步时会重试。
 
 首次初始化（已在本机完成时不必重跑）：
 

@@ -1,6 +1,6 @@
 # Academic Vocabulary
 
-这是本地 Codex Skill + Python 标准库脚本项目。主要入口是 `SKILL.md`。
+这是本地 Agent Skill + Python 标准库脚本项目，可在 Codex、Claude Code 等支持 skills 的本地运行环境中使用。主要入口是 `SKILL.md`。
 
 完整的简短安装、使用与排障说明见 [references/setup.md](references/setup.md)。
 
