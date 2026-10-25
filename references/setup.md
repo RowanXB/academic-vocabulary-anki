@@ -2,15 +2,15 @@
 
 要求：macOS、Python 3.9+、本地 Anki 和 AnkiConnect。运行脚本只依赖 Python 标准库。macOS 不一定预装 Python；本次机器已检测到 Python 3.13.7。
 
-项目默认位置：`~/Documents/AcademicVocabulary/`，Skill 包位于其 `academic-vocabulary-anki/` 子目录。`config.json` 和运行数据放在项目根目录；换电脑时同时备份整个项目目录，尤其是 pending、history 和 config。
+仓库与 Skill 默认位置：`~/.agents/skills/academic-vocabulary-anki/`。`SKILL.md`、scripts、references 等直接位于仓库根目录，完整 Git 历史一并保留。`config.json` 和运行数据放在项目根目录；换电脑时同时备份整个项目目录，尤其是 pending、history 和 config。
 
-Codex 原生本地安装位置：`~/.codex/skills/academic-vocabulary-anki/`。本次使用指向项目内 Skill 目录的符号链接，避免维护两份代码。新开 Codex 对话加载新技能；如未出现，重启 Codex。也可显式提供 SKILL.md 路径。此安装不等于 ChatGPT Cloud 已安装或可以访问本机。
+Codex 原生本地安装位置：`~/.codex/skills/academic-vocabulary-anki/`。本次保留指向上述仓库根目录的符号链接，避免维护两份代码。`~/.agents/skills/academic-vocabulary-anki/SKILL.md` 也是可直接调用的标准 Skill 入口。新开 Codex 对话加载新技能；如未出现，重启 Codex。也可显式提供 SKILL.md 路径。此安装不等于 ChatGPT Cloud 已安装或可以访问本机。
 
 在另一台 Mac 上，将文件包解压后放到同样的项目目录，再安装链接（如目标已存在，先人工检查，不覆盖）：
 
 ```sh
 mkdir -p ~/.codex/skills
-ln -s ~/Documents/AcademicVocabulary/academic-vocabulary-anki ~/.codex/skills/academic-vocabulary-anki
+ln -s ~/.agents/skills/academic-vocabulary-anki ~/.codex/skills/academic-vocabulary-anki
 ```
 
 首次在词汇专用对话发送：`使用 $academic-vocabulary-anki，把这个对话作为词汇收集对话。之后我发来的词汇请自动保存到 Anki。` 之后发送词或截图即可。自动发现是模型行为，无法保证每次都触发；显式启用一次并使用专门对话最稳妥。本项目没有后台常驻程序，打开 Anki 本身不会触发补同步；下次收词或执行同步时会重试。
@@ -18,7 +18,7 @@ ln -s ~/Documents/AcademicVocabulary/academic-vocabulary-anki ~/.codex/skills/ac
 首次初始化（已在本机完成时不必重跑）：
 
 ```sh
-python3 ~/Documents/AcademicVocabulary/academic-vocabulary-anki/scripts/sync.py --init
+python3 ~/.agents/skills/academic-vocabulary-anki/scripts/sync.py --init
 ```
 
 初始化会绑定当前 Anki 配置档，创建缺少的目标卡组/Note Type，检查字段和模板。已有不兼容的同名结构会停止，绝不覆盖。更换配置档需要用户主动检查并修改项目 config 中的 expected_profile；不要在同一队列中混用配置档。
@@ -28,14 +28,14 @@ python3 ~/Documents/AcademicVocabulary/academic-vocabulary-anki/scripts/sync.py 
 常用命令：
 
 ```sh
-python3 ~/Documents/AcademicVocabulary/academic-vocabulary-anki/scripts/sync.py --status
-python3 ~/Documents/AcademicVocabulary/academic-vocabulary-anki/scripts/sync.py
-python3 ~/Documents/AcademicVocabulary/academic-vocabulary-anki/scripts/lookup.py attenuate
-python3 ~/Documents/AcademicVocabulary/academic-vocabulary-anki/scripts/intake.py records.json
-python3 -m unittest discover -s ~/Documents/AcademicVocabulary/academic-vocabulary-anki/tests -v
+python3 ~/.agents/skills/academic-vocabulary-anki/scripts/sync.py --status
+python3 ~/.agents/skills/academic-vocabulary-anki/scripts/sync.py
+python3 ~/.agents/skills/academic-vocabulary-anki/scripts/lookup.py attenuate
+python3 ~/.agents/skills/academic-vocabulary-anki/scripts/intake.py records.json
+python3 -m unittest discover -s ~/.agents/skills/academic-vocabulary-anki/tests -v
 ```
 
-模型生成结构化数据；脚本不包含 AI API，也不接受裸词并自行生成定义。日常由 Skill 完成这一层。`--root PATH` 用于隔离测试数据或显式更换项目位置，不更改 Anki 目标名称或 localhost 地址。
+模型生成结构化数据；脚本不包含 AI API，也不接受裸词并自行生成定义。日常由 Skill 完成这一层。默认数据目录从脚本实际位置推导，不再依赖 Documents 路径。`--root PATH` 用于隔离测试数据或显式指定其他数据目录，不更改 Anki 目标名称或 localhost 地址。
 
 若 AnkiConnect 未安装，在 Anki → Tools → Add-ons → Get Add-ons 输入官方编号 `2055492159`，重启 Anki。本次已存在该插件，未重装。保持绑定地址 `127.0.0.1`、端口 `8765`；无需 CORS 通配符、无需关闭安全设置。若插件已启用 API key，使用环境变量 `ANKICONNECT_API_KEY` 传给脚本；不要把密钥写进笔记、Skill 或聊天。
 

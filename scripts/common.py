@@ -15,7 +15,7 @@ import urllib.request
 NAME = "Academic Vocabulary"
 FIELDS = ["Key", "Term", "Definition", "Context", "Prompt", "Answer", "Hint",
           "Collocation", "Contrast", "Receptive", "Productive", "IPA"]
-ROOT = Path.home() / "Documents" / "AcademicVocabulary"
+ROOT = Path(__file__).resolve().parents[1]
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 ENDPOINT = "http://127.0.0.1:8765"
 

@@ -5,7 +5,7 @@ description: Collect English academic vocabulary for a Neuroscience & Psychology
 
 # Academic vocabulary → Anki
 
-Run locally on macOS with Python 3.9+ standard library and AnkiConnect. Default project: `~/Documents/AcademicVocabulary/`. Resolve scripts relative to this skill directory. Local Codex can execute them; a cloud-only chat cannot reach the user's localhost. Never claim a cloud execution imported into local Anki.
+Run locally on macOS with Python 3.9+ standard library and AnkiConnect. Default repository: `~/.agents/skills/academic-vocabulary-anki/`; configuration and data live beside this SKILL.md, and scripts derive that location from their own path. Resolve scripts relative to this skill directory. Local Codex can execute them; a cloud-only chat cannot reach the user's localhost. Never claim a cloud execution imported into local Anki.
 
 ## Conversation behavior
 
@@ -32,7 +32,7 @@ Normal replies in Chinese are short, e.g. “已导入 1 个词义，生成 1 �
 
 Never edit `pending.jsonl` manually or access Anki's internal database. Use the scripts for validation, escaping, locking, atomic writes, API calls and recovery. `history.jsonl` stores confirmed records and new encounters, including contexts preserved locally when an existing Anki context is retained. Consult it for stable senses; it is not an alternative scheduler. Do not purge it automatically.
 
-The active profile is pinned in `config.json`. Initial setup uses `sync.py --init`; check `sync.py --status` on connectivity issues. Use [the installation guide](../README.md) if available, or [references/setup.md](references/setup.md) in a standalone package.
+The active profile is pinned in `config.json`. Initial setup uses `sync.py --init`; check `sync.py --status` on connectivity issues. Use [the installation guide](README.md) if available, or [references/setup.md](references/setup.md) in a standalone package.
 
 Do not overwrite nonempty Anki fields, change existing card flags, reset scheduling, move cards or delete notes. Only compatible blanks are eligible for filling; existing Context/Prompt/Answer/Hint are treated together. Existing template/field mismatch stops sync instead of overwriting. Keep other decks untouched. Avoid running while the user is editing the same note or switching profiles: AnkiConnect has no compare-and-swap transaction across read and write. A detected change leaves the record pending.
 
