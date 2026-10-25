@@ -30,6 +30,9 @@ ENDPOINT = "http://127.0.0.1:8765"
 # Digests of card templates shipped by earlier versions; only these are upgraded in place.
 PREVIOUS_TEMPLATE_DIGESTS = {
     "bd16712c40f478a2dc70e58f86bc543afedb0ad65aa69b7db7dc69410c4be085",  # before preferred TTS voices
+    "23533ab46c1c4120b661f3ec7ea67a768c6a876179e8c5ba806f444d6fe1b678",  # before the Base form label
+    "bc0cb147742a7139ff57fce2f57a1baf3d6fc0ef736e859a07bda5d2d3ec606f",  # label without an emphasized base form
+    "efb188ac0b2eda895149407ee184bd6cb9436d64a3ff07638b3c2b7a2c21d8e5",  # base form bold but not in the accent colour
 }
 
 

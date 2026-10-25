@@ -18,6 +18,8 @@ from lookup import lookup
 from sync import initialize, synchronize
 
 VOICES = "voices=Apple_Samantha,Microsoft_Zira,Microsoft_David"
+BASE_FORM_LABEL = '<span class="label" style="display: inline; margin-right: 6px;">Base form</span>'
+BASE_FORM_TERM = '<span class="term" style="font-size: 24px;">{{Term}}</span>'
 EXAMPLES = json.loads((SKILL / "evals/live-examples.json").read_text(encoding="utf-8"))
 
 
@@ -397,14 +399,27 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(self.run_sync()["status"], "pending")
         self.assertEqual(self.api.card_templates["Productive"]["Front"], "Custom template")
 
-    def previous_release_templates(self):
-        return {t["Name"]: {"Front": t["Front"], "Back": t["Back"].replace(" " + VOICES, "")} for t in templates()}
+    def previous_release_templates(self, version=1):
+        """1: original; 2: preferred voices; 3: plus the Base form label; 4: plus a bold base form."""
+        def old(back):
+            if version == 4:
+                return back.replace(BASE_FORM_TERM, '<span style="font-size: 20px; font-weight: 650;">{{Term}}</span>')
+            back = back.replace(BASE_FORM_TERM, "{{Term}}")
+            if version < 3:
+                back = back.replace(BASE_FORM_LABEL, "")
+            if version < 2:
+                back = back.replace(" " + VOICES, "")
+            return back
+        return {t["Name"]: {"Front": t["Front"], "Back": old(t["Back"])} for t in templates()}
 
     def test_init_upgrades_previous_release_templates(self):
-        self.add()
-        self.api.card_templates = self.previous_release_templates()
-        self.assertEqual(initialize(self.root, self.api)["status"], "ready")
-        self.assertEqual(self.api.card_templates, {t["Name"]: {"Front": t["Front"], "Back": t["Back"]} for t in templates()})
+        for version in (1, 2, 3, 4):
+            with self.subTest(version=version):
+                self.api = FakeAnki()
+                self.add()
+                self.api.card_templates = self.previous_release_templates(version)
+                self.assertEqual(initialize(self.root, self.api)["status"], "ready")
+                self.assertEqual(self.api.card_templates, {t["Name"]: {"Front": t["Front"], "Back": t["Back"]} for t in templates()})
 
     def test_sync_leaves_previous_templates_and_points_to_init(self):
         self.add()
@@ -614,6 +629,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertNotIn("{{Term}}", productive["Front"])
         self.assertIn("{{tts en_US " + VOICES + ":Answer}}", productive["Back"])
         self.assertIn("{{tts en_US " + VOICES + ":Term}}", templates()[0]["Back"])
+        self.assertIn('<div class="lemma">' + BASE_FORM_LABEL + BASE_FORM_TERM + "</div>", productive["Back"])
 
     def test_http_response_uncertainty(self):
         api = Anki({"timeout_seconds": 1})
