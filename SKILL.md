@@ -5,7 +5,7 @@ description: Collect English academic vocabulary for a Neuroscience & Psychology
 
 # Academic vocabulary → Anki
 
-Run locally on macOS with Python 3.9+ standard library and AnkiConnect. Default repository: `~/.agents/skills/academic-vocabulary-anki/`; configuration and data live beside this SKILL.md, and scripts derive that location from their own path. Resolve scripts relative to this skill directory. Any local agent runtime with shell access can execute them; a cloud-only session cannot reach the user's localhost. Never claim a cloud execution imported into local Anki.
+Run locally on macOS with Python 3.9+ standard library and AnkiConnect. The user chooses the install directory; configuration and data live beside this SKILL.md, and scripts derive that location from their own path. Resolve scripts relative to this skill directory. Any local agent runtime with shell access can execute them; a cloud-only session cannot reach the user's localhost. Never claim a cloud execution imported into local Anki.
 
 ## Conversation behavior
 

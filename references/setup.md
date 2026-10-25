@@ -4,17 +4,21 @@
 
 macOS, Python 3.9+, a local Anki installation and AnkiConnect. The scripts depend only on the Python standard library. macOS does not always ship with Python; check with `python3 --version`.
 
-## Where the skill lives
+## Choose where to install
 
-Default repository and skill location: `~/.agents/skills/academic-vocabulary-anki/`. `SKILL.md`, scripts, references and the rest sit directly in the repository root, together with the full Git history. `config.json` and runtime data live in the project root; when moving to another computer, back up the whole project directory, especially pending, history and config.
+Install the skill by cloning the repository into the skills directory of the runtime you use. Common locations:
 
-Each runtime reads the same repository through a symbolic link, so there is only one copy of the code:
+| Runtime | Skill directory |
+|---|---|
+| Runtimes that follow the Agent Skills standard directory | `~/.agents/skills/academic-vocabulary-anki/` |
+| Claude Code | `~/.claude/skills/academic-vocabulary-anki/` |
+| Codex | `~/.codex/skills/academic-vocabulary-anki/` |
 
-| Runtime | Location it reads | How to install |
-|---|---|---|
-| Runtimes that follow the Agent Skills standard directory | `~/.agents/skills/academic-vocabulary-anki/` | The repository itself |
-| Claude Code | `~/.claude/skills/academic-vocabulary-anki/` | Link to the repository root, or link the whole `~/.claude/skills` to `~/.agents/skills` |
-| Codex | `~/.codex/skills/academic-vocabulary-anki/` | Link to the repository root |
+You decide the location; any directory your runtime loads skills from works. The scripts find their configuration and data from their own location, so `config.json` and `data/` live inside the directory you choose. Back up that whole directory when moving to another computer, especially pending, history and config.
+
+Each clone keeps its own configuration and vocabulary history. If you use several runtimes and want them to share one history, install once and make the other runtimes read that same directory yourself.
+
+The rest of this guide writes the chosen directory as `<skill-dir>`.
 
 New conversations load new skills; if the skill does not appear, restart that runtime or give it the path to SKILL.md explicitly. A local installation does not mean a cloud session has the skill or can reach this computer.
 
@@ -27,28 +31,24 @@ Open a local agent session that can run shell commands (for example Claude Code 
 ```text
 Install the agent skill from https://github.com/RowanXB/academic-vocabulary-anki on this Mac:
 1. Check that python3 is version 3.9 or later.
-2. Clone the repository to ~/.agents/skills/academic-vocabulary-anki. If that path already exists, stop and show me what is there.
-3. Make the skill visible to the runtimes I use (Claude Code and/or Codex) by creating symlinks named academic-vocabulary-anki in ~/.claude/skills and ~/.codex/skills that point to the clone. Skip a runtime whose skills directory is already a link to ~/.agents/skills, and never overwrite an existing file or link.
-4. Ask me to open Anki with the AnkiConnect add-on enabled, then run scripts/sync.py --status and show me the result.
+2. Ask me which directory to install it in, and suggest this runtime's own skills directory as the default. Do not choose for me.
+3. Clone the repository into the directory I choose. If that path already exists, stop and show me what is there. Do not create symbolic links or copies anywhere else.
+4. Ask me to open Anki with the AnkiConnect add-on enabled, then run scripts/sync.py --status from the clone and show me the result.
 5. Only after I confirm the active Anki profile is the one I want, run scripts/sync.py --init.
-Report what you created at the end.
+Report the install path and what you ran at the end.
 ```
 
 Then start a new conversation so the runtime loads the skill.
 
 ### Install manually
 
-Clone the repository to the default location first, then add links only for the runtimes you actually use (if a target already exists, inspect it manually and do not overwrite it):
+Pick a directory from the table above and clone into it. For example, for Claude Code:
 
 ```sh
-git clone https://github.com/RowanXB/academic-vocabulary-anki.git ~/.agents/skills/academic-vocabulary-anki
-mkdir -p ~/.codex/skills
-ln -s ~/.agents/skills/academic-vocabulary-anki ~/.codex/skills/academic-vocabulary-anki
-mkdir -p ~/.claude/skills
-ln -s ~/.agents/skills/academic-vocabulary-anki ~/.claude/skills/academic-vocabulary-anki
+git clone https://github.com/RowanXB/academic-vocabulary-anki.git ~/.claude/skills/academic-vocabulary-anki
 ```
 
-If `~/.claude/skills` is already a link to `~/.agents/skills`, skip the last two lines; otherwise `ln -s` creates a self-referencing link inside the repository.
+If the target already exists, inspect it manually and do not overwrite it.
 
 ## Set up AnkiConnect
 
@@ -59,7 +59,7 @@ If AnkiConnect is not installed, enter the official code `2055492159` in Anki â†
 Run once, with Anki open on the profile you want to use:
 
 ```sh
-python3 ~/.agents/skills/academic-vocabulary-anki/scripts/sync.py --init
+python3 <skill-dir>/scripts/sync.py --init
 ```
 
 Initialization binds the current Anki profile, creates the missing target deck and note type, and checks fields and templates. If an incompatible structure with the same name already exists, it stops and never overwrites it.
@@ -79,11 +79,11 @@ If you clear the current profile yourself: keep the local project first; after c
 ## Common commands
 
 ```sh
-python3 ~/.agents/skills/academic-vocabulary-anki/scripts/sync.py --status
-python3 ~/.agents/skills/academic-vocabulary-anki/scripts/sync.py
-python3 ~/.agents/skills/academic-vocabulary-anki/scripts/lookup.py attenuate
-python3 ~/.agents/skills/academic-vocabulary-anki/scripts/intake.py records.json
-python3 -m unittest discover -s ~/.agents/skills/academic-vocabulary-anki/tests -v
+python3 <skill-dir>/scripts/sync.py --status
+python3 <skill-dir>/scripts/sync.py
+python3 <skill-dir>/scripts/lookup.py attenuate
+python3 <skill-dir>/scripts/intake.py records.json
+python3 -m unittest discover -s <skill-dir>/tests -v
 ```
 
 The model generates the structured data; the scripts contain no AI API and do not accept a bare word to generate definitions themselves. The skill handles that layer in everyday use. The default data directory is derived from the scripts' actual location. `--root PATH` isolates test data or points to another data directory explicitly; it does not change the Anki target names or the localhost address.
