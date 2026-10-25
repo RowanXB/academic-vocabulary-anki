@@ -29,10 +29,10 @@ Open a local agent session that can run shell commands (for example Claude Code 
 
 ```text
 Install the agent skill from https://github.com/RowanXB/academic-vocabulary-anki on this Mac:
-1. Check that python3 is version 3.9 or later.
-2. Ask me which directory to install it in, and suggest this runtime's own skills directory as the default. Do not choose for me.
-3. Clone the repository into the directory I choose. If that path already exists, stop and show me what is there. Do not create symbolic links or copies anywhere else.
-4. Ask me to open Anki with the AnkiConnect add-on enabled, then run scripts/sync.py --status from the clone and show me the result.
+1. Check that python3 is version 3.9 or later, and a local Anki and AnkiConnect is installed. If not, install them after I confirmed.
+2. Ask me which directory to install the skill in, and suggest this runtime's own skills directory as the default. Do not choose for me.
+3. Clone the repository into the directory I choose. If that path already exists, stop and show me what is there.
+4. Open Anki with the AnkiConnect add-on enabled, then run scripts/sync.py --status from the clone and show me the result.
 5. Only after I confirm the active Anki profile is the one I want, run scripts/sync.py --init.
 Report the install path and what you ran at the end.
 ```
