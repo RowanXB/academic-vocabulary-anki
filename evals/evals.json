@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "词汇收集模式：attenuate",
+      "prompt": "Vocabulary collection mode: attenuate",
       "expected_output": "One Productive card, natural generated context, same reduction-sense key on reuse, verified US IPA or blank.",
       "files": [
         "single-word.json"
@@ -19,7 +19,7 @@
     },
     {
       "id": 3,
-      "prompt": "anterograde amnesia；working memory",
+      "prompt": "anterograde amnesia; working memory",
       "expected_output": "Receptive for the specialist term, Both for core working memory; separate meanings and verified definitions.",
       "files": [
         "live-examples.json"
@@ -27,7 +27,7 @@
     },
     {
       "id": 4,
-      "prompt": "affect（没有其他语境）",
+      "prompt": "affect (no other context)",
       "expected_output": "Ask one brief question about verb influence versus noun emotional expression; do not import an invented sense.",
       "files": []
     }

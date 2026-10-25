@@ -1,27 +1,27 @@
 [
   {
     "id": 1,
-    "prompt": "这是专用的词汇收集对话。attenuate",
-    "expected": "按常见学术义生成 Productive，离线时可靠暂存且如实报告，恢复后同步。"
+    "prompt": "This is the dedicated vocabulary collection chat. attenuate",
+    "expected": "Generate a Productive card for the common academic sense; when offline, cache reliably and report it truthfully, then sync after recovery."
   },
   {
     "id": 2,
-    "prompt": "attenuate — The effect was attenuated after controlling for age. 然后重复发送同一句。",
-    "expected": "原句逐字保留；Answer 为 attenuated；复用已有词义 Key，重复同步不重复建卡。"
+    "prompt": "attenuate — The effect was attenuated after controlling for age. Then send the same sentence again.",
+    "expected": "Keep the sentence verbatim; Answer is attenuated; reuse the existing sense Key and do not create a duplicate on repeated sync."
   },
   {
     "id": 3,
     "prompt": "anterograde amnesia\naffect",
-    "expected": "专业术语优先 Receptive；affect 缺少语境有实质歧义时简短澄清；不编造定义、IPA 或导入状态。"
+    "expected": "Prefer Receptive for the specialist term; for affect without context and with real ambiguity, ask a brief clarifying question; do not invent definitions, IPA or import status."
   },
   {
     "id": 4,
     "prompt": "attenuate — The intervention may attenuate the response, as it attenuated earlier responses.",
-    "expected": "用 answer_spans 选中两个不同词形，生成按语序编号的两个空和对应答案；原句不改写。"
+    "expected": "Select two different forms with answer_spans, producing two blanks numbered in sentence order with matching answers; do not rewrite the sentence."
   },
   {
     "id": 5,
-    "prompt": "（已有 attenuate 的产出卡，提示为空）attenuate — The effect was attenuated after controlling for age. 这次做识别卡，提示写上过去分词形式。",
-    "expected": "复用已有词义 Key；不改已有卡型、不新增识别卡并如实说明；含答案的提示不会补进已有产出卡；不夸大同步结果。"
+    "prompt": "(An existing attenuate productive card with an empty Hint) attenuate — The effect was attenuated after controlling for age. This time make a recognition card and put the past-participle form in the hint.",
+    "expected": "Reuse the existing sense Key; do not change existing card flags or add a recognition card, and say so truthfully; a hint containing the answer must not be filled into the existing productive card; do not overstate the sync result."
   }
 ]

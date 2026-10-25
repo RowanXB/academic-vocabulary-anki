@@ -2,7 +2,7 @@
 
 A local Agent Skill plus Python standard-library scripts. It works in local runtimes that support skills, such as Codex and Claude Code. The main entry point is `SKILL.md`.
 
-Installation, usage and troubleshooting notes are in [references/setup.md](references/setup.md) (in Chinese).
+Installation, usage and troubleshooting notes are in [references/setup.md](references/setup.md).
 
 Main files:
 
