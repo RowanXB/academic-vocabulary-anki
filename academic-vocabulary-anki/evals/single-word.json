@@ -1,0 +1,31 @@
+{
+  "sense": "reduce-strength",
+  "fields": {
+    "Term": "attenuate",
+    "Definition": "To reduce the strength or magnitude of something.",
+    "Context": "Additional statistical controls may attenuate the observed association.",
+    "Answer": "attenuate",
+    "Hint": "verb; starts with a; base form",
+    "Collocation": "attenuate an effect",
+    "Contrast": "",
+    "Receptive": "",
+    "Productive": "1",
+    "IPA": "/əˈten.ju.eɪt/"
+  },
+  "tags": [
+    "academic",
+    "statistics"
+  ],
+  "context_origin": "generated",
+  "target_forms": [
+    "attenuate",
+    "attenuates",
+    "attenuating",
+    "attenuated",
+    "attenuation"
+  ],
+  "ipa_source": "https://dictionary.cambridge.org/us/dictionary/english/attenuate",
+  "sources": [
+    "https://dictionary.cambridge.org/us/dictionary/english/attenuate"
+  ]
+}

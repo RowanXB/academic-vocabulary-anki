@@ -1,0 +1,83 @@
+[
+  {
+    "sense": "reduce-strength",
+    "fields": {
+      "Term": "attenuate",
+      "Definition": "To reduce the strength or magnitude of something.",
+      "Context": "The effect was attenuated after controlling for age.",
+      "Answer": "attenuated",
+      "Hint": "verb; starts with a; past participle",
+      "Collocation": "attenuate an effect",
+      "Contrast": "",
+      "Receptive": "",
+      "Productive": "1",
+      "IPA": "/əˈten.ju.eɪt/"
+    },
+    "tags": [
+      "academic",
+      "statistics"
+    ],
+    "context_origin": "user",
+    "original_context": "The effect was attenuated after controlling for age.",
+    "target_forms": [
+      "attenuate",
+      "attenuates",
+      "attenuating",
+      "attenuated",
+      "attenuation"
+    ],
+    "ipa_source": "https://dictionary.cambridge.org/us/dictionary/english/attenuate",
+    "sources": [
+      "https://dictionary.cambridge.org/us/dictionary/english/attenuate"
+    ]
+  },
+  {
+    "sense": "impaired-new-long-term-memory",
+    "fields": {
+      "Term": "anterograde amnesia",
+      "Definition": "An impaired ability to form new long-term memories.",
+      "Context": "The patient developed anterograde amnesia after the injury.",
+      "Answer": "anterograde amnesia",
+      "Hint": "",
+      "Collocation": "severe anterograde amnesia",
+      "Contrast": "Retrograde amnesia concerns memories formed before the onset.",
+      "Receptive": "1",
+      "Productive": "",
+      "IPA": ""
+    },
+    "tags": [
+      "neuroscience",
+      "psychology"
+    ],
+    "context_origin": "generated",
+    "sources": [
+      "https://www.ncbi.nlm.nih.gov/medgen/115938",
+      "https://pubmed.ncbi.nlm.nih.gov/9342692/",
+      "https://dictionary.apa.org/transient-global-amnesia"
+    ]
+  },
+  {
+    "sense": "temporary-maintenance-and-manipulation",
+    "fields": {
+      "Term": "working memory",
+      "Definition": "A system that temporarily holds and manipulates information for ongoing cognitive tasks.",
+      "Context": "The task places high demands on working memory during mental arithmetic.",
+      "Answer": "working memory",
+      "Hint": "two-word noun phrase; starts with w",
+      "Collocation": "working memory capacity",
+      "Contrast": "",
+      "Receptive": "1",
+      "Productive": "1",
+      "IPA": ""
+    },
+    "tags": [
+      "psychology",
+      "neuroscience"
+    ],
+    "context_origin": "generated",
+    "sources": [
+      "https://dictionary.apa.org/working-memory",
+      "https://pubmed.ncbi.nlm.nih.gov/26950009/"
+    ]
+  }
+]

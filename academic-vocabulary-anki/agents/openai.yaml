@@ -1,0 +1,6 @@
+interface:
+  display_name: "Academic Vocabulary Anki"
+  short_description: "Collect academic vocabulary and sync it safely to local Anki"
+  default_prompt: "Use $academic-vocabulary-anki for this vocabulary collection chat; save the words and context I send to local Anki."
+policy:
+  allow_implicit_invocation: true

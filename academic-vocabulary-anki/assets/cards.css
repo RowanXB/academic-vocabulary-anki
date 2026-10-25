@@ -1,0 +1,20 @@
+.card { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 20px; line-height: 1.55; text-align: left; color: #172838; background: #f5f6f7; margin: 0; padding: 22px 18px; overflow-wrap: anywhere; -webkit-text-size-adjust: 100%; }
+.sheet { max-width: 680px; margin: 0 auto; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #557080; margin-bottom: 16px; }
+.term { font-size: 32px; font-weight: 650; line-height: 1.25; margin: 8px 0 18px; color: #155f73; }
+.context { padding: 16px; margin: 20px 0; background: #e9eef1; border-left: 3px solid #4b8290; border-radius: 4px; }
+.definition { font-size: 22px; }
+.ipa { font-family: "Charis SIL", "Doulos SIL", "DejaVu Sans", Arial, sans-serif; color: #526574; margin: 10px 0; }
+.lemma { font-size: 17px; color: #526574; }
+.detail { font-size: 18px; margin-top: 16px; }
+.label { display: block; font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: .05em; color: #557080; margin-bottom: 3px; }
+.hint { font-size: 17px; margin-top: 18px; }
+a { color: #12647c; text-underline-offset: 3px; }
+.hint a, .replay-button { display: inline-block; min-height: 44px; min-width: 44px; }
+.audio { margin-top: 20px; }
+hr { max-width: 680px; border: 0; border-top: 1px solid #bbc7ce; margin: 24px auto; }
+.nightMode.card, .night_mode.card { color: #e7edf3; background: #17212b; }
+.nightMode .context, .night_mode .context { background: #233340; border-color: #8bbcca; }
+.nightMode .term, .night_mode .term, .nightMode a, .night_mode a { color: #9bd9e7; }
+.nightMode .ipa, .night_mode .ipa, .nightMode .lemma, .night_mode .lemma, .nightMode .label, .night_mode .label, .nightMode .eyebrow, .night_mode .eyebrow { color: #b7c8d5; }
+@media (max-width: 480px) { .card { padding: 18px 14px; font-size: 19px; } .term { font-size: 28px; } .definition { font-size: 21px; } .context { padding: 13px; } }

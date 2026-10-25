@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "prompt": "这是专用的词汇收集对话。attenuate",
+    "expected": "按常见学术义生成 Productive，离线时可靠暂存且如实报告，恢复后同步。"
+  },
+  {
+    "id": 2,
+    "prompt": "attenuate — The effect was attenuated after controlling for age. 然后重复发送同一句。",
+    "expected": "原句逐字保留；Answer 为 attenuated；复用已有词义 Key，重复同步不重复建卡。"
+  },
+  {
+    "id": 3,
+    "prompt": "anterograde amnesia\naffect",
+    "expected": "专业术语优先 Receptive；affect 缺少语境有实质歧义时简短澄清；不编造定义、IPA 或导入状态。"
+  }
+]
