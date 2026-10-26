@@ -8,9 +8,11 @@ Paths and commands follow [setup.md](setup.md#requirements): `<skill-dir>` is th
 
 ### Start collecting
 
-In a chat dedicated to vocabulary, send this first: `Use academic-vocabulary-anki and treat this chat as a vocabulary collection chat. Save every word I send from now on to Anki automatically.` (In Codex you can write `$academic-vocabulary-anki`; in Claude Code you can use `/academic-vocabulary-anki`.) After that, just send words or screenshots.
+To put a chat in collection mode, so that every word you send is saved, send this once: `Use academic-vocabulary-anki and treat this chat as a vocabulary collection chat. Save every word I send from now on to Anki automatically.` (In Codex you can write `$academic-vocabulary-anki`; in Claude Code you can use `/academic-vocabulary-anki`.) Saying the same thing in your own words, in any language, also works. After that, just send words or screenshots, and say that you want to stop when you are done.
 
-Automatic skill discovery is model behavior and cannot be guaranteed every time; enabling it explicitly once in a dedicated chat is the most reliable. The project has no resident background process, and opening Anki does not trigger a catch-up sync; pending records are retried on the next collected word or sync run.
+You can also save particular words without collection mode or the skill name, in any wording or language, for example “把 attenuate 记下来” or `save this word: attenuate`. SKILL.md, under "Conversation behavior", defines exactly what each request saves, including how meaning questions are handled.
+
+Automatic skill discovery is model behavior and cannot be guaranteed every time; naming the skill, as above, is the most reliable. The project has no resident background process, and opening Anki does not trigger a catch-up sync; pending records are retried on the next collected word or sync run.
 
 ### Script commands
 
