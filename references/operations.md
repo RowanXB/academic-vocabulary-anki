@@ -8,7 +8,7 @@ Paths and commands follow [setup.md](setup.md#requirements): `<skill-dir>` is th
 
 ### Start collecting
 
-To put a chat in collection mode, so that every word you send is saved, send this once: `Use academic-vocabulary-anki and treat this chat as a vocabulary collection chat. Save every word I send from now on to Anki automatically.` (In Codex you can write `$academic-vocabulary-anki`; in Claude Code you can use `/academic-vocabulary-anki`.) Saying the same thing in your own words, in any language, also works. After that, just send words or screenshots, and say that you want to stop when you are done.
+To put a chat in collection mode, so that every word you send is saved, send this once: `Use academic-vocabulary-anki and treat this chat as a vocabulary collection chat. Save every word I send from now on to Anki automatically.` (In Codex you can write `$academic-vocabulary-anki`; in Claude Code you can use `/academic-vocabulary-anki`.) Saying the same thing in your own words, in any language, also works. After that, just send words or screenshots, and say that you want to stop when you are done. In a screenshot or a longer pasted passage, highlight, underline or circle the words to save, or name them in your message; otherwise the agent asks which ones you mean.
 
 You can also save particular words without collection mode or the skill name, in any wording or language, for example “把 attenuate 记下来” or `save this word: attenuate`. SKILL.md, under "Conversation behavior", defines exactly what each request saves, including how meaning questions are handled.
 
