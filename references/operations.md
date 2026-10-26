@@ -8,9 +8,9 @@ Paths and commands follow [setup.md](setup.md#requirements): `<skill-dir>` is th
 
 ### Start collecting
 
-To start a chat that saves every word you send, name the skill once: `Use academic-vocabulary-anki and treat this chat as a vocabulary collection chat. Save every word I send from now on to Anki automatically.` (In Codex you can write `$academic-vocabulary-anki`; in Claude Code you can use `/academic-vocabulary-anki`.) After that, just send words or screenshots. Say that you want to stop collecting, or move on to another task, to leave collection mode. In collection mode, a question such as `what does attenuate mean?` is answered and the word is saved too.
+To put a chat in collection mode, so that every word you send is saved, send this once: `Use academic-vocabulary-anki and treat this chat as a vocabulary collection chat. Save every word I send from now on to Anki automatically.` (In Codex you can write `$academic-vocabulary-anki`; in Claude Code you can use `/academic-vocabulary-anki`.) Saying the same thing in your own words, in any language, also works. After that, just send words or screenshots, and say that you want to stop when you are done.
 
-Outside a collection chat, any request whose meaning is to save vocabulary also works without naming the skill, in any language, for example “把 attenuate 记下来” or `save this word: attenuate`. A request that names words saves exactly those words; a request without words makes the agent ask for them and save only the next batch; a question about a word's meaning is only answered.
+You can also save particular words without collection mode or the skill name, in any wording or language, for example “把 attenuate 记下来” or `save this word: attenuate`. SKILL.md, under "Conversation behavior", defines exactly what each request saves, including how meaning questions are handled.
 
 Automatic skill discovery is model behavior and cannot be guaranteed every time; naming the skill, as above, is the most reliable. The project has no resident background process, and opening Anki does not trigger a catch-up sync; pending records are retried on the next collected word or sync run.
 
