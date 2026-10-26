@@ -1,6 +1,6 @@
 ---
 name: academic-vocabulary-anki
-description: Collect English academic vocabulary for a Neuroscience & Psychology student and save concise, sense-specific cards to local Anki through AnkiConnect. Use when the user asks to save or accumulate vocabulary in Chinese or English, for example 积累单词, 收集生词, 记录词汇, 把这个词记下来, 加入单词本, "save this word" or "add this to my Anki"; no skill name or separate import instruction is needed. Also use for bare words, terms, collocations, lists or context screenshots in a chat the user has put in collection mode. Quoting or discussing these phrases or this skill, meaning or translation questions outside collection mode, and English text in unrelated tasks do not authorize collection.
+description: Collect English academic vocabulary for a Neuroscience & Psychology student and save concise, sense-specific cards to local Anki through AnkiConnect. Use whenever a request means saving or accumulating vocabulary, in any wording or language, for example 积累单词, 收集生词, 记录词汇, 把这个词记下来, 加入单词本, "save this word" or "add this to my Anki"; no skill name or separate import instruction is needed. Also use for bare words, terms, collocations, lists or context screenshots in a chat the user has put in collection mode. Quoting or discussing these phrases or this skill, meaning or translation questions outside collection mode, and English text in unrelated tasks do not authorize collection.
 ---
 
 # Academic vocabulary → Anki
@@ -9,7 +9,7 @@ Run locally on macOS or Windows with Python 3.9+ standard library and AnkiConnec
 
 ## Conversation behavior
 
-Recognize collection requests by meaning, not exact keywords. There are two ways to collect, and neither needs a separate import confirmation:
+Recognize collection requests by meaning in any language, not by exact keywords. There are two ways to collect, and neither needs a separate import confirmation:
 
 - **One-off collection.** A request that names its targets (“把 attenuate 记下来”, “save these words: …”, a word followed by “积累一下”) authorizes exactly those targets. A collection request without a target (“积累单词”, “I want to save some words”) authorizes only the vocabulary the user sends next: ask for it, do not invent entries, and do not enter collection mode.
 - **Collection mode.** It starts only when the user explicitly says the chat is for collecting vocabulary or that later words should be saved (“这个对话专门用来收词”, “save every word I send from now on”). In collection mode, a bare word, phrase, batch or readable screenshot is sufficient authorization to generate, cache and import, and so is a question about a word's meaning or translation: answer it and import the word. It ends when the user says to stop or the chat moves to an unrelated task.
