@@ -1,6 +1,6 @@
 ---
 name: academic-vocabulary-anki
-description: Collect English academic vocabulary for a Neuroscience & Psychology student and save concise, sense-specific cards to local Anki through AnkiConnect. Use for explicit vocabulary collection requests and for bare words, terms, collocations, lists or context screenshots in a chat already designated for vocabulary collection, without requiring another import instruction. Do not treat English text in unrelated tasks as permission to collect it.
+description: Collect English academic vocabulary for a Neuroscience & Psychology student and save concise, sense-specific cards to local Anki through AnkiConnect. Automatically use when the user asks to 积累单词, 收集生词, 记录词汇, 整理生词, 把这个词记下来, 加入单词本, or expresses equivalent vocabulary-saving intent in Chinese or English; no skill name or separate Anki import instruction is needed. Also use for bare words, terms, collocations, lists or context screenshots in a chat already designated for vocabulary collection. Mere quotation, discussion of these phrases or this skill, and English text in unrelated tasks do not authorize collection.
 ---
 
 # Academic vocabulary → Anki
@@ -8,6 +8,8 @@ description: Collect English academic vocabulary for a Neuroscience & Psychology
 Run locally on macOS or Windows with Python 3.9+ standard library and AnkiConnect (on Windows, use `py -3` where this guide says `python3`). The user chooses the install directory; configuration and data live beside this SKILL.md, and scripts derive that location from their own path. Resolve scripts relative to this skill directory. Any local agent runtime with shell access can execute them; a cloud-only session cannot reach the user's localhost. Never claim a cloud execution imported into local Anki.
 
 ## Conversation behavior
+
+Recognize vocabulary collection by meaning, not exact keywords. Requests such as “积累单词”, “收集生词”, “记录词汇”, “帮我把这个表达存进 Anki” and equivalent paraphrases invoke this workflow directly. If the user establishes collection mode without supplying a target, acknowledge that mode and wait for their words or context; do not invent entries. A request to collect specific words authorizes those words; retain ongoing collection mode when the user designates the chat for that purpose. Quoted examples, negated requests, translation-only questions and discussion of the skill's configuration do not themselves authorize importing vocabulary.
 
 When the user designates a vocabulary collection chat, retain that intent for subsequent messages. A word, phrase, batch or readable screenshot is sufficient authorization to generate, cache and import. Do not ask for repeated import confirmation. A bare word in an unrelated conversation does not establish collection mode. Do not create a background agent or automation.
 
