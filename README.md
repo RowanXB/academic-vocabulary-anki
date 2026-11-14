@@ -2,6 +2,22 @@
 
 A local Agent Skill plus Python standard-library scripts. It works in local runtimes that support skills, such as Codex and Claude Code. The main entry point is `SKILL.md`.
 
+## Cards
+
+Each sense becomes one note with a Receptive card, a Productive card, or both. The examples below are real cards collected with this skill; ▶ marks the read-aloud button.
+
+Receptive card: the front shows the term in its original sentence; the back adds a brief English definition, American IPA and a collocation.
+
+![Receptive card for "rodent": front and back](docs/images/receptive-card.png)
+
+Productive card: the front shows the definition and the sentence with a blank, plus an optional hint.
+
+![Front of the productive card for "traverse"](docs/images/productive-card-front.png)
+
+The back shows the form used in the sentence, the base form, IPA, the full sentence and a collocation.
+
+![Back of the productive card for "traverse"](docs/images/productive-card-back.png)
+
 ## Install
 
 Ask a local agent that can run shell commands, such as Claude Code or Codex:
